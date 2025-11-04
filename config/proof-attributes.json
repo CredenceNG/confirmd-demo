@@ -1,0 +1,62 @@
+[
+  {
+    "name": "admission_number",
+    "description": "Student admission number"
+  },
+  {
+    "name": "programme",
+    "description": "Academic programme/course of study"
+  },
+  {
+    "name": "graduation_year",
+    "description": "Year of graduation"
+  },
+  {
+    "name": "surname",
+    "description": "Student's surname/family name"
+  },
+  {
+    "name": "school_name",
+    "description": "Name of educational institution"
+  },
+  {
+    "name": "national_id_number",
+    "description": "National identification number"
+  },
+  {
+    "name": "department",
+    "description": "Academic department"
+  },
+  {
+    "name": "othernames",
+    "description": "Other names (first name, middle name)"
+  },
+  {
+    "name": "matric_number",
+    "description": "Matriculation number"
+  },
+  {
+    "name": "date_issued",
+    "description": "Date credential was issued"
+  },
+  {
+    "name": "date_expiry",
+    "description": "Credential expiry date"
+  },
+  {
+    "name": "bank_verification_number",
+    "description": "Bank Verification Number (BVN)"
+  },
+  {
+    "name": "school_nuc_number",
+    "description": "National Universities Commission (NUC) number"
+  },
+  {
+    "name": "jamb_number",
+    "description": "JAMB registration number"
+  },
+  {
+    "name": "date_of_birth",
+    "description": "Student's date of birth"
+  }
+]

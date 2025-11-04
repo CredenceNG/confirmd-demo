@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// Connection Tracking Models
+// ============================================
+
+model ConnectionSession {
+  id             String   @id @default(uuid())
+  sessionId      String   @unique
+  invitationId   String
+  invitationUrl  String
+  status         String   // invitation, request, response, active, completed, error, abandoned
+  connectionId   String?
+  theirDid       String?
+  theirLabel     String?
+  requestType    String?  // registration, authentication
+  userAgent      String?
+  ipAddress      String?
+  userId         String?
+  metadata       String?  // JSON string for additional data
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime
+
+  @@index([sessionId])
+  @@index([connectionId])
+  @@index([status])
+}
+
+model WebhookEvent {
+  id             String   @id @default(uuid())
+  webhookId      String   @unique
+  topic          String
+  organizationId String
+  agentId        String
+  connectionId   String?
+  proofId        String?
+  payload        String   // JSON string of webhook payload
+  processed      Boolean  @default(false)
+  processedAt    DateTime?
+  createdAt      DateTime @default(now())
+
+  @@index([connectionId])
+  @@index([proofId])
+  @@index([processed])
+  @@index([createdAt])
+}
+
+// ============================================
+// Proof Request Models
+// ============================================
+
+model ProofRequest {
+  id                String   @id @default(uuid())
+  sessionId         String   @unique // Link to ConnectionSession
+  proofId           String?  @unique // From ConfirmD Platform
+  connectionId      String   // Connection to send proof request to
+  status            String   // request-sent, presentation-received, done, abandoned
+  comment           String?
+  requestedAttributes String // JSON array of requested attributes
+  presentedAttributes String? // JSON object of presented attributes
+  verified          Boolean  @default(false)
+  verifiedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([proofId])
+  @@index([connectionId])
+  @@index([status])
+}
+
+// ============================================
+// Loan Application Models
+// ============================================
+
+model LoanApplication {
+  id                  String   @id @default(uuid())
+  sessionId           String   @unique // Link to ProofRequest session
+  applicationNumber   String   @unique // Auto-generated application reference
+
+  // Student Information (from verified credentials)
+  admissionNumber     String?
+  programme           String?
+  graduationYear      String?
+  surname             String?
+  othernames          String?
+  schoolName          String?
+  department          String?
+  matricNumber        String?
+  nationalIdNumber    String?
+  bankVerificationNumber String?
+  schoolNucNumber     String?
+  jambNumber          String?
+  dateOfBirth         String?
+  dateIssued          String?
+  dateExpiry          String?
+
+  // Additional Application Data
+  loanAmount          Float?
+  loanPurpose         String?
+  accountNumber       String?
+  bankName            String?
+  contactPhone        String?
+  contactEmail        String?
+
+  // Application Status
+  status              String   @default("pending") // pending, under_review, approved, rejected
+  submittedAt         DateTime?
+  reviewedAt          DateTime?
+  reviewedBy          String?  // Admin user ID
+  reviewNotes         String?
+  approvedAmount      Float?
+
+  // Metadata
+  verifiedCredentials String?  // JSON of all verified attributes
+  applicationData     String?  // JSON of complete application
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([applicationNumber])
+  @@index([status])
+  @@index([admissionNumber])
+  @@index([submittedAt])
+}

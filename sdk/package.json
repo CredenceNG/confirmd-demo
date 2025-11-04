@@ -1,0 +1,42 @@
+{
+  "name": "@confirmd/verifier-sdk",
+  "version": "1.0.0",
+  "description": "Official SDK for building verifier applications with ConfirmD Platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "confirmd",
+    "verifiable-credentials",
+    "did",
+    "ssi",
+    "identity",
+    "verification",
+    "verifier",
+    "anoncreds",
+    "indy"
+  ],
+  "author": "ConfirmD Platform",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/confirmd/verifier-sdk"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
