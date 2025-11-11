@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 export default async function UsersPage() {
   // Fetch users from database (will work after running migrations)
-  let users = [];
+  let users: any[] = [];
   try {
     users = await prisma.user.findMany({
       orderBy: { createdAt: "desc" },

@@ -59,6 +59,7 @@ export interface ConfirmdApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: ApiError;
+  invitationId?: string; // Optional outOfBandId for connection invitations
 }
 
 /**
@@ -307,32 +308,53 @@ export type WebhookTopic =
   | "proofs.verified";
 
 /**
- * Webhook payload from Confirmd Platform
- */
-/**
- * Actual webhook payload structure from Confirmd Platform
- * Fields are flat at the top level, not nested in a `data` object
+ * Webhook payload from Confirmd Platform (after flattening by webhook handler)
+ *
+ * PLATFORM FORMAT: The Platform sends webhooks with a nested structure where important
+ * fields are inside a 'data' object:
+ * {
+ *   "type": "Connection",
+ *   "timestamp": "...",
+ *   "orgId": "...",
+ *   "tenantId": "...",
+ *   "data": {
+ *     "id": "...",
+ *     "state": "...",
+ *     "connectionId": "...",
+ *     ...other fields
+ *   },
+ *   "clientContext": {}
+ * }
+ *
+ * HANDLER PROCESSING: The webhook handler (/api/webhooks/confirmd/route.ts) automatically
+ * flattens this structure by merging the 'data' object into the top level, which is what
+ * this interface represents (the flattened payload used by connection-service and proof-service).
  */
 export interface ConfirmdWebhookPayload {
-  type: string;
-  createDateTime: string;
-  lastChangedDateTime: string;
-  id: string;
-  connectionId: string;
-  state: string;
-  imageUrl?: string;
-  orgDid: string;
-  theirLabel?: string;
-  theirDid?: string;
-  autoAcceptConnection?: boolean;
-  outOfBandId: string;
-  orgId: string;
-  contextCorrelationId?: string;
-  createdBy?: string;
-  lastChangedBy?: string;
-  timestamp: string;
-  clientContext?: Record<string, any>;
-  [key: string]: any;
+  type: string;                      // "Connection", "Proof", or "Credential"
+  timestamp: string;                 // ISO 8601 timestamp (webhook send time)
+  orgId: string;                     // Organization UUID
+  tenantId?: string;                 // Tenant UUID
+  // Fields from 'data' object (merged to top level by handler)
+  id: string;                        // Unique identifier for the event
+  connectionId: string;              // Connection ID (may be same as id for connections)
+  state: string;                     // Event state (e.g., "completed", "presentation-received")
+  role?: string;                     // Role (e.g., "responder", "verifier")
+  createdAt?: string;                // ISO 8601 timestamp
+  updatedAt?: string;                // ISO 8601 timestamp
+  theirLabel?: string;               // Holder's wallet label
+  theirDid?: string;                 // Holder's DID
+  autoAcceptConnection?: boolean;    // Auto-accept connection flag
+  threadId?: string;                 // DIDComm thread ID
+  outOfBandId?: string;              // Out-of-band invitation ID
+  orgDid?: string;                   // Organization DID
+  protocol?: string;                 // DIDComm protocol
+  protocolVersion?: string;          // Protocol version
+  autoAcceptProof?: string;          // Auto-accept proof setting
+  isVerified?: boolean;              // Proof verification status
+  contextCorrelationId?: string;     // Correlation ID
+  clientContext?: Record<string, any>; // Optional client context
+  [key: string]: any;                // Additional dynamic fields
 }
 
 /**
@@ -428,8 +450,8 @@ export enum ProofRequestType {
  */
 export interface ProofAttributeRequest {
   attributeName: string;
-  schemaId: string;
-  credDefId?: string;
+  schemaId?: string;  // Optional - omit for unrestricted proof requests (accept from any issuer/schema)
+  credDefId?: string; // Optional - omit for unrestricted proof requests
   condition?: ">" | "<" | ">=" | "<="; // For predicates
   value?: number;                       // For predicates
 }

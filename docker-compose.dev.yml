@@ -1,0 +1,31 @@
+version: '3.8'
+
+# Development override for docker-compose.yml
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+      - ./.env:/app/.env:ro
+    command: npm run dev
+    ports:
+      - "3302:3300"
+      - "9229:9229"  # Node.js debugger
+
+  db:
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_USER=nelfund_dev
+      - POSTGRES_PASSWORD=nelfund_dev_password
+      - POSTGRES_DB=nelfund_demo_dev

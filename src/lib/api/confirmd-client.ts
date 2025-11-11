@@ -33,10 +33,12 @@ class ConfirmdClient {
   constructor(baseURL?: string) {
     this.baseURL = baseURL || process.env.CONFIRMD_BASE_URL || "";
 
-    if (!this.baseURL) {
-      throw new Error(
-        "CONFIRMD_BASE_URL is not configured. Please set it in your environment variables."
+    if (!this.baseURL && process.env.NODE_ENV !== 'production') {
+      console.warn(
+        "WARNING: CONFIRMD_BASE_URL is not configured. API calls will fail at runtime."
       );
+      // Set a placeholder to allow build to complete
+      this.baseURL = "https://placeholder.example.com";
     }
 
     this.axiosInstance = axios.create({
@@ -48,26 +50,69 @@ class ConfirmdClient {
       },
     });
 
-    // Request interceptor to add authentication token
+    // Request interceptor to add authentication token and log requests
     this.axiosInstance.interceptors.request.use(
       async (config) => {
         try {
           const token = await getAccessToken();
           config.headers.Authorization = `Bearer ${token}`;
+
+          // Log raw request details
+          console.log("=== AXIOS REQUEST ===", {
+            method: config.method?.toUpperCase(),
+            url: config.url,
+            baseURL: config.baseURL,
+            fullURL: `${config.baseURL}${config.url}`,
+            headers: {
+              ...config.headers,
+              Authorization: config.headers.Authorization ? `Bearer ${(config.headers.Authorization as string).substring(7, 15)}...` : undefined,
+            },
+            data: config.data,
+            params: config.params,
+          });
+
           return config;
         } catch (error) {
+          console.error("=== AXIOS REQUEST ERROR (Auth) ===", error);
           return Promise.reject(error);
         }
       },
       (error) => {
+        console.error("=== AXIOS REQUEST ERROR ===", error);
         return Promise.reject(error);
       }
     );
 
-    // Response interceptor for error handling and token refresh
+    // Response interceptor for error handling, token refresh, and logging
     this.axiosInstance.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // Log successful response
+        console.log("=== AXIOS RESPONSE SUCCESS ===", {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.config.url,
+          headers: response.headers,
+          dataType: typeof response.data,
+          dataLength: typeof response.data === 'string' ? response.data.length : undefined,
+          dataSample: typeof response.data === 'string'
+            ? response.data.substring(0, 200)
+            : typeof response.data === 'object'
+            ? JSON.stringify(response.data).substring(0, 500)
+            : response.data,
+        });
+        return response;
+      },
       async (error: AxiosError) => {
+        // Log error response
+        console.error("=== AXIOS RESPONSE ERROR ===", {
+          message: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: error.config?.url,
+          responseHeaders: error.response?.headers,
+          responseData: error.response?.data,
+        });
+
         const originalRequest = error.config as AxiosRequestConfig & {
           _retry?: boolean;
         };
@@ -77,6 +122,7 @@ class ConfirmdClient {
           originalRequest._retry = true;
 
           try {
+            console.log("=== TOKEN REFRESH ATTEMPT ===");
             // Invalidate the cached token
             invalidateToken();
 
@@ -88,9 +134,11 @@ class ConfirmdClient {
               originalRequest.headers.Authorization = `Bearer ${token}`;
             }
 
+            console.log("=== RETRYING REQUEST WITH NEW TOKEN ===");
             // Retry the original request
             return this.axiosInstance(originalRequest);
           } catch (refreshError) {
+            console.error("=== TOKEN REFRESH FAILED ===", refreshError);
             return Promise.reject(refreshError);
           }
         }
@@ -164,10 +212,23 @@ class ConfirmdClient {
         success: true,
         data: response.data,
       };
-    } catch (error) {
+    } catch (error: any) {
+      console.error("=== POST REQUEST FAILED ===", {
+        endpoint,
+        data,
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+      });
+
       return {
         success: false,
-        error: error as ApiError,
+        error: {
+          error: error.response?.data?.error || error.code || "request_failed",
+          error_description: error.response?.data?.error_description || error.response?.data?.message || error.message,
+          status: error.response?.status,
+        } as ApiError,
       };
     }
   }
@@ -379,50 +440,31 @@ class ConfirmdClient {
     state: string;
   }>> {
     try {
-      // Get organization ID
-      const orgId = process.env.CONFIRMD_ORG_ID;
-      console.log("[ConfirmdClient] createConnectionInvitation - Reading process.env.CONFIRMD_ORG_ID:", orgId);
-      if (!orgId) {
+      // TEMPORARY FALLBACK: Use the old getConnectionInvitation method
+      // This bypasses the new API endpoint and uses the pre-existing multi-use invitation
+      console.log("[ConfirmdClient] Using fallback method: getConnectionInvitation");
+      const fallbackResult = await this.getConnectionInvitation();
+
+      if (fallbackResult.success && fallbackResult.data) {
+        console.log("[ConfirmdClient] Fallback succeeded, invitation URL obtained");
         return {
-          success: false,
-          error: {
-            error: "missing_organization_id",
-            error_description: "CONFIRMD_ORG_ID not found in environment variables",
+          success: true,
+          data: {
+            invitationId: `inv-${Date.now()}`,
+            invitationUrl: fallbackResult.data,
+            state: 'created',
           },
         };
       }
 
-      // Get the agent ID from organization
-      const orgResult = await this.getCurrentOrganization();
-      if (!orgResult.success || !orgResult.data?.data) {
-        return {
-          success: false,
-          error: orgResult.error || {
-            error: "organization_not_found",
-            error_description: "Could not retrieve organization details",
-          },
-        };
-      }
-
-      const agent = orgResult.data.data.org_agents?.[0];
-      if (!agent) {
-        return {
-          success: false,
-          error: {
-            error: "no_agents_found",
-            error_description: "Organization has no agents configured",
-          },
-        };
-      }
-
-      // Create the invitation
-      const result = await this.post(`/connections/create-invitation`, {
-        agentId: agent.id,
-        label: label || orgResult.data.data.name,
-        multiUse,
-      });
-
-      return result;
+      console.error("[ConfirmdClient] Fallback also failed:", fallbackResult.error);
+      return {
+        success: false,
+        error: fallbackResult.error || {
+          error: "invitation_creation_failed",
+          error_description: "Failed to create or retrieve invitation",
+        },
+      };
     } catch (error: any) {
       return {
         success: false,
@@ -443,26 +485,45 @@ class ConfirmdClient {
    */
   async getConnectionInvitation(): Promise<ConfirmdApiResponse<string>> {
     try {
+      console.log("[ConfirmdClient] getConnectionInvitation - START");
+
       // Check if there's an environment variable fallback for invitation URL
       const envInvitationUrl = process.env.CONFIRMD_INVITATION_URL;
 
       if (envInvitationUrl) {
-        console.log("[ConfirmdClient] Using invitation URL from environment variable");
+        console.log("[ConfirmdClient] Using invitation URL from environment variable:", envInvitationUrl);
         try {
+          console.log("[ConfirmdClient] Fetching invitation from env URL...");
           const response = await axios.get<string>(envInvitationUrl);
+          console.log("[ConfirmdClient] Successfully fetched invitation from env URL");
           return {
             success: true,
             data: response.data,
           };
         } catch (error: any) {
-          console.error("[ConfirmdClient] Failed to fetch invitation from env URL:", error.message);
+          console.error("[ConfirmdClient] Failed to fetch invitation from env URL:", {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+          });
           // Continue to try organization method
         }
       }
 
+      console.log("[ConfirmdClient] Fetching organization details...");
       const orgResult = await this.getCurrentOrganization();
 
+      console.log("[ConfirmdClient] Organization fetch result:", {
+        success: orgResult.success,
+        hasData: !!orgResult.data,
+        error: orgResult.error,
+      });
+
+      console.log("[ConfirmdClient] RAW Organization API Response:", JSON.stringify(orgResult, null, 2));
+
       if (!orgResult.success || !orgResult.data?.data) {
+        console.error("[ConfirmdClient] Failed to get organization:", orgResult.error);
         return {
           success: false,
           error: orgResult.error || {
@@ -473,10 +534,28 @@ class ConfirmdClient {
       }
 
       const org = orgResult.data.data;
+      console.log("[ConfirmdClient] Organization data:", {
+        id: org.id,
+        name: org.name,
+        hasAgents: !!org.org_agents,
+        agentType: typeof org.org_agents,
+        isArray: Array.isArray(org.org_agents),
+      });
 
-      // Extract invitation from first agent
-      const agent = org.org_agents?.[0];
+      // Handle org_agents - can be either an object or an array
+      let agent;
+      if (Array.isArray(org.org_agents)) {
+        // Legacy format: array of agents
+        console.log("[ConfirmdClient] org_agents is an array, using first element");
+        agent = org.org_agents[0];
+      } else if (org.org_agents && typeof org.org_agents === 'object') {
+        // Current format: single agent object
+        console.log("[ConfirmdClient] org_agents is an object, using directly");
+        agent = org.org_agents;
+      }
+
       if (!agent) {
+        console.error("[ConfirmdClient] No agents found in organization");
         return {
           success: false,
           error: {
@@ -486,8 +565,15 @@ class ConfirmdClient {
         };
       }
 
+      console.log("[ConfirmdClient] Agent data:", {
+        id: agent.id,
+        hasInvitations: !!agent.agent_invitations,
+        invitationCount: agent.agent_invitations?.length || 0,
+      });
+
       const invitation = agent.agent_invitations?.[0];
       if (!invitation) {
+        console.error("[ConfirmdClient] No invitations found in agent");
         return {
           success: false,
           error: {
@@ -499,13 +585,27 @@ class ConfirmdClient {
 
       // Fetch the actual invitation URL from the storage
       const invitationUrl = invitation.connectionInvitation;
-      const response = await axios.get<string>(invitationUrl);
+      console.log("[ConfirmdClient] Fetching invitation from URL:", invitationUrl);
+      console.log("[ConfirmdClient] Invitation ID (outOfBandId):", invitation.id);
 
+      const response = await axios.get<string>(invitationUrl);
+      console.log("[ConfirmdClient] Successfully fetched invitation, data length:", response.data?.length);
+
+      // Return both the invitation data AND the invitation ID for webhook matching
+      // The invitation.id is the outOfBandId that will appear in webhooks
       return {
         success: true,
         data: response.data,
+        invitationId: invitation.id, // This is the outOfBandId from the Platform
       };
     } catch (error: any) {
+      console.error("[ConfirmdClient] getConnectionInvitation - ERROR:", {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data,
+        stack: error.stack,
+      });
       return {
         success: false,
         error: {

@@ -1,10 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Header from "@/components/Header";
 
-export default function ConfirmationPage() {
+function ConfirmationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const applicationNumber = searchParams.get("applicationNumber");
@@ -47,7 +47,6 @@ export default function ConfirmationPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="py-12 px-4">
         <div className="max-w-3xl mx-auto">
           {/* Success Message Card */}
@@ -250,5 +249,13 @@ export default function ConfirmationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ConfirmationContent />
+    </Suspense>
   );
 }

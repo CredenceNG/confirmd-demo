@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -99,6 +99,66 @@ model ProofRequest {
   @@index([proofId])
   @@index([connectionId])
   @@index([status])
+}
+
+// ============================================
+// NYSC Registration Models
+// ============================================
+
+model NYSCRegistration {
+  id                      String   @id @default(uuid())
+  sessionId               String   @unique // Link to registration session
+
+  // Identity linking attribute (from Student Card proof)
+  nationalIdNumber        String   // Primary linking attribute across all credentials
+
+  // Personal Information (extracted from proofs)
+  surname                 String?
+  othernames              String?
+  matricNumber            String?
+  schoolName              String?
+  programme               String?
+  department              String?
+  dateOfBirth             String?
+
+  // Registration Data (Phase 1)
+  callUpNumber            String?
+  contactAddress          String?
+  contactPhone            String?
+  emergencyContactName    String?
+  emergencyContactPhone   String?
+  emergencyContactRelation String?
+  isServicePersonnel      String?
+
+  // Green Card Credential
+  greenCardIssued         Boolean  @default(false)
+  greenCardIssuedAt       DateTime?
+  greenCardCredentialId   String?  // Credential ID from ConfirmD
+
+  // Onboarding Data (Phase 2)
+  onboardingSessionId     String?  // Link to onboarding session
+  idCardIssued            Boolean  @default(false)
+  idCardIssuedAt          DateTime?
+  idCardCredentialId      String?  // Credential ID from ConfirmD
+  serviceState            String?
+  serviceStartDate        String?
+  serviceEndDate          String?
+
+  // Status tracking
+  status                  String   @default("registration_started") // registration_started, green_card_issued, onboarding_started, id_card_issued, completed
+
+  // Metadata
+  registrationData        String?  // JSON of complete registration data
+  proofData               String?  // JSON of verified proof attributes
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([nationalIdNumber])
+  @@index([status])
+  @@index([greenCardIssued])
+  @@index([idCardIssued])
 }
 
 // ============================================

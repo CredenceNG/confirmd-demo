@@ -50,8 +50,7 @@ export async function POST(request: NextRequest) {
       proofId,
       success: result.success,
       hasData: !!result.data,
-      verified: result.data?.isVerified,
-      state: result.data?.state,
+      verified: result.data?.verified,
     });
 
     if (!result.success) {
@@ -60,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch proof details with presentation attributes after verification
-    if (result.data && result.data.isVerified) {
+    if (result.data && result.data.verified) {
       try {
         const { prisma } = await import("@/lib/prisma");
         const { confirmdClient } = await import("@/lib/api/confirmd-client");
@@ -176,7 +175,7 @@ export async function POST(request: NextRequest) {
 
     logger.proofFlow("VERIFY_COMPLETE", {
       proofId,
-      verified: result.data?.isVerified,
+      verified: result.data?.verified,
       success: result.success,
     });
 

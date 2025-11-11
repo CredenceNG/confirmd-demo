@@ -17,22 +17,85 @@ import { confirmdClient } from "@/lib/api/confirmd-client";
  * Create a new connection session with the organization's invitation
  */
 export async function POST(request: NextRequest) {
+  console.log("========================================");
+  console.log("=== SESSION CREATION API CALLED ===");
+  console.log("========================================");
+
   try {
     const body = await request.json();
-    const { requestType = "registration" } = body;
+    const { requestType = "registration", useExistingConnection = false, connectionId: existingConnectionId } = body;
 
+    console.log("Request body:", body);
+
+    // If using existing connection, skip invitation creation
+    if (useExistingConnection && existingConnectionId) {
+      logger.info("Using existing connection for NELFUND", {
+        connectionId: existingConnectionId,
+      });
+
+      // Generate session ID for tracking
+      const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Get client information
+      const userAgent = request.headers.get("user-agent") || undefined;
+      const ipAddress =
+        request.headers.get("x-forwarded-for")?.split(",")[0] ||
+        request.headers.get("x-real-ip") ||
+        undefined;
+
+      // Create connection session with existing connectionId
+      const session = await createConnectionSession({
+        invitationId: sessionId,
+        invitationUrl: "",
+        requestType: requestType as "registration" | "authentication",
+        userAgent,
+        ipAddress,
+        connectionId: existingConnectionId,
+        metadata: {
+          createdVia: "api",
+          useExistingConnection: true,
+        },
+      });
+
+      logger.info("Created session with existing connection", {
+        sessionId: session.sessionId,
+        connectionId: existingConnectionId,
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          sessionId: session.sessionId,
+          connectionId: existingConnectionId,
+          status: "completed",
+          message: "Using existing connection",
+        },
+      });
+    }
+
+    // Otherwise, create new connection invitation
     // Get organization connection invitation
+    logger.info("Requesting connection invitation from Platform...");
     const invitationResult = await confirmdClient.getConnectionInvitation();
+
+    logger.info("Connection invitation result:", {
+      success: invitationResult.success,
+      hasData: !!invitationResult.data,
+      error: invitationResult.error,
+    });
 
     if (!invitationResult.success || !invitationResult.data) {
       logger.error("Failed to get connection invitation", {
+        success: invitationResult.success,
         error: invitationResult.error,
+        fullResult: JSON.stringify(invitationResult),
       });
 
       return NextResponse.json(
         {
           error: "failed_to_create_session",
           message: "Could not retrieve connection invitation from platform",
+          details: invitationResult.error,
         },
         { status: 500 }
       );
@@ -40,15 +103,30 @@ export async function POST(request: NextRequest) {
 
     const invitationUrl = invitationResult.data;
 
+    // Get the outOfBandId from the invitation result for precise webhook matching
+    // This is the ID that will appear in webhook payloads from the Platform
+    const outOfBandId = (invitationResult as any).invitationId;
+
     // Generate session ID that can be tracked
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Use session ID as invitation ID for tracking
-    // When webhook arrives, we'll match by connectionId instead
-    const invitationId = sessionId;
+    // Use outOfBandId if available, otherwise fall back to sessionId
+    const invitationId = outOfBandId || sessionId;
+
+    if (outOfBandId) {
+      logger.info("Using outOfBandId from Platform for webhook matching", {
+        outOfBandId,
+        sessionId
+      });
+    } else {
+      logger.warn("No outOfBandId available, using sessionId as invitationId", {
+        sessionId,
+      });
+    }
 
     logger.info("Retrieved organization invitation", {
       sessionId,
+      invitationId,
     });
 
     // Get client information

@@ -20,10 +20,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await confirmdClient.requestWalletData(
+    const result = await confirmdClient.requestWalletData({
       sessionId,
-      dataFields
-    );
+      dataFields,
+    });
 
     if (!result.success) {
       return NextResponse.json(

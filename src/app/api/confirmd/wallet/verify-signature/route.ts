@@ -20,11 +20,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await confirmdClient.verifyWalletSignature(
+    const result = await confirmdClient.verifyWalletSignature({
       walletAddress,
       signature,
-      message
-    );
+      message,
+    });
 
     if (!result.success) {
       return NextResponse.json(

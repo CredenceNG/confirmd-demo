@@ -1,8 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Header from "@/components/Header";
 
 interface ProofAttribute {
   raw: string;
@@ -31,7 +31,7 @@ interface ApiResponse {
   };
 }
 
-export default function ApplicationPage() {
+function ApplicationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("sessionId");
@@ -238,7 +238,6 @@ export default function ApplicationPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="py-8 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -668,5 +667,13 @@ export default function ApplicationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ApplicationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ApplicationContent />
+    </Suspense>
   );
 }

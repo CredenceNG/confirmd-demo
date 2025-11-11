@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 import { useConnectionWebSocket } from "@/hooks/useConnectionWebSocket";
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "requesting-proof" | "proof-received";
@@ -240,7 +239,6 @@ export default function RegisterPage() {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-gray-50">
         {/* Main Content */}
       <div className="container mx-auto px-4 py-8 max-w-6xl">

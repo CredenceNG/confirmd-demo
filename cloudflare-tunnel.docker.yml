@@ -1,0 +1,7 @@
+tunnel: c99d1116-58bd-443e-838f-9a62e2cbb01f
+credentials-file: /etc/cloudflared/credentials.json
+
+ingress:
+  - hostname: demo.confamd.com
+    service: http://nelfund-demo:3300
+  - service: http_status:404

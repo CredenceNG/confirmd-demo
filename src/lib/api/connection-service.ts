@@ -21,6 +21,7 @@ export async function createConnectionSession(params: {
   requestType?: "registration" | "authentication";
   userAgent?: string;
   ipAddress?: string;
+  connectionId?: string;
   metadata?: Record<string, any>;
 }): Promise<ConnectionSession> {
   const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -30,14 +31,20 @@ export async function createConnectionSession(params: {
     sessionId,
     invitationId: params.invitationId,
     requestType: params.requestType,
+    connectionId: params.connectionId,
+    useExistingConnection: !!params.connectionId,
   });
+
+  // If using existing connection, create session with "active" status and connectionId
+  const status = params.connectionId ? "active" : "invitation";
 
   const session = await prisma.connectionSession.create({
     data: {
       sessionId,
       invitationId: params.invitationId,
       invitationUrl: params.invitationUrl,
-      status: "invitation",
+      status,
+      connectionId: params.connectionId || null,
       requestType: params.requestType || null,
       userAgent: params.userAgent || null,
       ipAddress: params.ipAddress || null,
@@ -68,12 +75,16 @@ export async function getConnectionSession(
 
 /**
  * Get connection session by connection ID
+ * When reusing connections, returns the MOST RECENT session with this connectionId
  */
 export async function getConnectionSessionByConnectionId(
   connectionId: string
 ): Promise<ConnectionSession | null> {
   const session = await prisma.connectionSession.findFirst({
     where: { connectionId },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   if (!session) {
@@ -150,14 +161,39 @@ export async function processWebhookEvent(
     },
   });
 
-  // If this is a connection event, update the session
-  if (payload.type === "Connection" && payload.connectionId) {
+  // Handle connection events and credential events
+  if ((payload.type === "Connection" || payload.type === "Credential") && payload.connectionId) {
     // Strategy 1: Try to find session by connectionId (if already linked)
+    // When reusing connections, find the MOST RECENT session with this connectionId
     let session = await prisma.connectionSession.findFirst({
       where: { connectionId: payload.connectionId },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    // Strategy 2: If not found, find most recent session in "invitation" state
+    // Strategy 2: If not found and we have outOfBandId, try to match by invitationId
+    // This is more precise than just finding the most recent invitation session
+    if (!session && payload.outOfBandId) {
+      session = await prisma.connectionSession.findFirst({
+        where: {
+          invitationId: payload.outOfBandId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (session) {
+        logger.info("Matched webhook to session by outOfBandId", {
+          sessionId: session.sessionId,
+          connectionId: payload.connectionId,
+          outOfBandId: payload.outOfBandId,
+        });
+      }
+    }
+
+    // Strategy 3: If still not found, find most recent session in "invitation" state
     // This works because we're using multi-use invitation - the newest session
     // without a connectionId is likely the one being connected
     if (!session) {
@@ -172,7 +208,7 @@ export async function processWebhookEvent(
       });
 
       if (session) {
-        logger.info("Matched webhook to most recent invitation session", {
+        logger.info("Matched webhook to most recent invitation session (fallback)", {
           sessionId: session.sessionId,
           connectionId: payload.connectionId,
         });
@@ -180,36 +216,39 @@ export async function processWebhookEvent(
     }
 
     if (session) {
-      // Map Confirmd states to our ConnectionStatus
-      const statusMap: Record<string, ConnectionStatus> = {
-        "response-sent": "response",
-        "completed": "active",
-        "active": "active",
-        "request-sent": "request",
-        "invitation": "invitation",
-      };
+      // For Connection events, update the session status
+      if (payload.type === "Connection") {
+        // Map Confirmd states to our ConnectionStatus
+        const statusMap: Record<string, ConnectionStatus> = {
+          "response-sent": "response",
+          "completed": "active",
+          "active": "active",
+          "request-sent": "request",
+          "invitation": "invitation",
+        };
 
-      const mappedStatus = statusMap[payload.state] || payload.state as ConnectionStatus;
+        const mappedStatus = statusMap[payload.state] || payload.state as ConnectionStatus;
 
-      const updatedSession = await prisma.connectionSession.update({
-        where: { id: session.id },
-        data: {
+        const updatedSession = await prisma.connectionSession.update({
+          where: { id: session.id },
+          data: {
+            status: mappedStatus,
+            connectionId: payload.connectionId,
+            theirLabel: payload.theirLabel || session.theirLabel,
+            theirDid: payload.theirDid || session.theirDid,
+            updatedAt: new Date(),
+          },
+        });
+
+        logger.info("Updated session from webhook", {
+          sessionId: session.sessionId,
           status: mappedStatus,
           connectionId: payload.connectionId,
-          theirLabel: payload.theirLabel || session.theirLabel,
-          theirDid: payload.theirDid || session.theirDid,
-          updatedAt: new Date(),
-        },
-      });
+          theirLabel: payload.theirLabel,
+        });
+      }
 
-      logger.info("Updated session from webhook", {
-        sessionId: session.sessionId,
-        status: mappedStatus,
-        connectionId: payload.connectionId,
-        theirLabel: payload.theirLabel,
-      });
-
-      // Broadcast status update via WebSocket
+      // Broadcast status update via WebSocket (for both Connection and Credential events)
       try {
         // Access the global wsManager set by the custom server
         const wsManager = (global as any).wsManager;
@@ -221,15 +260,24 @@ export async function processWebhookEvent(
 
           // Broadcast using connectionId (preferred) or sessionId (fallback)
           if (typeof wsManager.broadcastStatusUpdate === 'function') {
+            const eventType = payload.type === "Credential" ? "credential" : "connection";
             wsManager.broadcastStatusUpdate(
               payload.connectionId,
-              mappedStatus,
+              payload.state,
               {
                 sessionId: session.sessionId,
                 connectionId: payload.connectionId,
                 theirLabel: payload.theirLabel,
+                eventType,
+                status: payload.state,
               }
             );
+            logger.info("Broadcast WebSocket update", {
+              eventType,
+              state: payload.state,
+              connectionId: payload.connectionId,
+              sessionId: session.sessionId,
+            });
           }
         } else {
           logger.warn("WebSocket manager not available (running without custom server)", {
@@ -246,6 +294,7 @@ export async function processWebhookEvent(
       logger.warn("No session found for webhook event", {
         connectionId: payload.connectionId,
         outOfBandId: payload.outOfBandId,
+        type: payload.type,
       });
     }
   }

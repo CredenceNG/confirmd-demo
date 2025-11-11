@@ -1,62 +1,47 @@
 [
   {
-    "name": "admission_number",
-    "description": "Student admission number"
-  },
-  {
-    "name": "programme",
-    "description": "Academic programme/course of study"
-  },
-  {
-    "name": "graduation_year",
-    "description": "Year of graduation"
-  },
-  {
     "name": "surname",
-    "description": "Student's surname/family name"
-  },
-  {
-    "name": "school_name",
-    "description": "Name of educational institution"
-  },
-  {
-    "name": "national_id_number",
-    "description": "National identification number"
-  },
-  {
-    "name": "department",
-    "description": "Academic department"
+    "description": "Student's surname/family name",
+    "credential": "Student Card"
   },
   {
     "name": "othernames",
-    "description": "Other names (first name, middle name)"
+    "description": "Other names (first name, middle name)",
+    "credential": "Student Card"
   },
   {
     "name": "matric_number",
-    "description": "Matriculation number"
+    "description": "Matriculation number",
+    "credential": "Student Card"
   },
   {
-    "name": "date_issued",
-    "description": "Date credential was issued"
+    "name": "school_name",
+    "description": "Name of educational institution",
+    "credential": "Student Card"
   },
   {
-    "name": "date_expiry",
-    "description": "Credential expiry date"
+    "name": "programme",
+    "description": "Academic programme/course of study",
+    "credential": "Student Card"
   },
   {
-    "name": "bank_verification_number",
-    "description": "Bank Verification Number (BVN)"
-  },
-  {
-    "name": "school_nuc_number",
-    "description": "National Universities Commission (NUC) number"
-  },
-  {
-    "name": "jamb_number",
-    "description": "JAMB registration number"
+    "name": "department",
+    "description": "Academic department",
+    "credential": "Student Card"
   },
   {
     "name": "date_of_birth",
-    "description": "Student's date of birth"
+    "description": "Student's date of birth",
+    "credential": "Student Card"
+  },
+  {
+    "name": "national_id_number",
+    "description": "National identification number",
+    "credential": "Student Card"
+  },
+  {
+    "name": "graduation_year",
+    "description": "Year of graduation",
+    "credential": "Student Card"
   }
 ]

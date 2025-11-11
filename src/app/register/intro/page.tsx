@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Header from "@/components/Header";
 
 export default function RegisterIntroPage() {
   const router = useRouter();
@@ -16,7 +15,6 @@ export default function RegisterIntroPage() {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-gray-50">
         {/* Main Content */}
         <div className="container mx-auto px-4 py-8 max-w-6xl">

@@ -25,23 +25,35 @@ import { buildProofAttributeRequests, getProofRequestComment, getProofAttributes
  * @param sessionId - Session ID from connection
  * @param connectionId - Connection ID from ConfirmD
  * @param orgId - Organization ID
+ * @param customAttributes - Optional custom proof attributes (for multi-credential proof requests like NYSC)
+ * @param customComment - Optional custom comment/description
  * @returns Proof request record
  */
 export async function createProofRequest(
   sessionId: string,
   connectionId: string,
-  orgId: string
+  orgId: string,
+  customAttributes?: ProofAttributeRequest[],
+  customComment?: string
 ) {
   try {
     logger.info("Creating proof request", {
       sessionId,
       connectionId,
       orgId,
+      hasCustomAttributes: !!customAttributes,
     });
 
-    // Build proof attributes from environment config
-    const attributes = buildProofAttributeRequests();
-    const comment = getProofRequestComment();
+    // Build proof attributes from environment config or use custom attributes
+    const attributes = customAttributes || buildProofAttributeRequests();
+    const comment = customComment || getProofRequestComment();
+
+    logger.info("Built proof attributes", {
+      attributeCount: attributes.length,
+      sampleAttribute: attributes[0],
+      hasCustomAttributes: !!customAttributes,
+      allAttributes: JSON.stringify(attributes).substring(0, 500),
+    });
 
     const payload = {
       connectionId,
@@ -55,7 +67,7 @@ export async function createProofRequest(
     };
 
     logger.info("Sending proof request to ConfirmD Platform", {
-      payload,
+      payload: JSON.stringify(payload).substring(0, 1000),
       requestType: ProofRequestType.INDY,
     });
 
@@ -367,7 +379,7 @@ export async function processProofWebhookEvent(
                 status: mappedStatus,
                 proofId: payload.id,
                 presentedAttributes: JSON.stringify(attributes),
-                verified: proofDetails.data.verified,
+                verified: proofDetails.success && mappedStatus === "done",
                 ...(mappedStatus === "done" && { verifiedAt: new Date() }),
                 updatedAt: new Date(),
               },
@@ -377,7 +389,7 @@ export async function processProofWebhookEvent(
               sessionId: proofRequest.sessionId,
               proofId: payload.id,
               status: mappedStatus,
-              verified: proofDetails.data.verified,
+              verified: proofDetails.success && mappedStatus === "done",
             });
 
             // Broadcast via WebSocket
@@ -388,7 +400,7 @@ export async function processProofWebhookEvent(
                 mappedStatus,
                 {
                   proofId: payload.id,
-                  verified: proofDetails.data.verified,
+                  verified: proofDetails.success && mappedStatus === "done",
                   status: mappedStatus,
                   eventType: "proof",  // Changed from 'type' to 'eventType' to avoid collision
                 }

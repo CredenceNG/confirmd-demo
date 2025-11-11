@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 export default async function PostsPage() {
   // Fetch posts from database (will work after running migrations)
-  let posts = [];
+  let posts: any[] = [];
   try {
     posts = await prisma.post.findMany({
       include: { author: true },

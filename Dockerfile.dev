@@ -1,0 +1,31 @@
+# Development Dockerfile with hot reload support
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies for node-gyp
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    libc6-compat
+
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Copy the rest of the application
+COPY . .
+
+# Expose ports
+EXPOSE 3300 9229
+
+# Start development server with debugging enabled
+CMD ["npm", "run", "dev"]

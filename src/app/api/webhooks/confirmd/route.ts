@@ -63,14 +63,29 @@ export async function POST(request: NextRequest) {
       dataKeys: rawPayload.data ? Object.keys(rawPayload.data) : null,
     });
 
-    // Transform payload structure - the Platform now sends data nested in a 'data' field
-    // Merge the nested 'data' object with top-level fields
+    // Transform payload structure from Platform format to flat format
+    // The Platform sends webhooks with important fields nested inside a 'data' object:
+    // {
+    //   "type": "Connection",
+    //   "timestamp": "...",
+    //   "orgId": "...",
+    //   "tenantId": "...",
+    //   "data": {
+    //     "id": "...",
+    //     "state": "...",
+    //     "connectionId": "...",
+    //     ...other fields
+    //   }
+    // }
+    // We flatten this by merging the data object into the top level for easier access
     const payload: ConfirmdWebhookPayload = {
       ...rawPayload,
       ...(rawPayload.data || {}),
-      // Preserve top-level timestamp and type
+      // Preserve top-level fields (don't let data override these)
       timestamp: rawPayload.timestamp,
       type: rawPayload.type,
+      orgId: rawPayload.orgId,
+      tenantId: rawPayload.tenantId,
     };
 
     // Log the transformed payload
@@ -151,6 +166,34 @@ export async function POST(request: NextRequest) {
           stack: connError.stack,
         });
         throw connError;
+      }
+    } else if (payload.type === "Credential") {
+      logger.info("ROUTING TO CONNECTION SERVICE (CREDENTIAL EVENT)", {
+        type: payload.type,
+        state: payload.state,
+        connectionId: payload.connectionId || payload.id,
+      });
+
+      // Credential events should be broadcast via WebSocket
+      // Use connection service to broadcast to the appropriate session
+      payload.connectionId = payload.connectionId || payload.id;
+
+      try {
+        await processWebhookEvent(payload);
+        logger.info("CREDENTIAL EVENT PROCESSING COMPLETE", {
+          type: payload.type,
+          state: payload.state,
+          connectionId: payload.connectionId,
+        });
+      } catch (credError: any) {
+        logger.error("CREDENTIAL EVENT PROCESSING FAILED", {
+          type: payload.type,
+          state: payload.state,
+          connectionId: payload.connectionId,
+          error: credError.message,
+          stack: credError.stack,
+        });
+        throw credError;
       }
     } else {
       logger.warn("Unknown webhook type", {

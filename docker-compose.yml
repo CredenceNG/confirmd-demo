@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nelfund-demo
+    ports:
+      - "3302:3300"
+    environment:
+      - NODE_ENV=production
+      # ConfirmD Platform Configuration
+      - CONFIRMD_ORG_ID=${CONFIRMD_ORG_ID}
+      - CONFIRMD_CLIENT_ID=${CONFIRMD_CLIENT_ID}
+      - CONFIRMD_CLIENT_SECRET=${CONFIRMD_CLIENT_SECRET}
+      - CONFIRMD_AUTH_URL=${CONFIRMD_AUTH_URL}
+      - CONFIRMD_BASE_URL=${CONFIRMD_BASE_URL}
+      # Database Configuration - override .env for Docker
+      - DATABASE_URL=postgresql://nelfund:nelfund_password@db:5432/nelfund_demo
+      # Credential Definition IDs
+      - ISSUE_CRED_DEF_ID=${ISSUE_CRED_DEF_ID}
+      - STUDENT_CARD_CRED_DEF_ID=${STUDENT_CARD_CRED_DEF_ID}
+      - STATEMENT_OF_RESULT_CRED_DEF_ID=${STATEMENT_OF_RESULT_CRED_DEF_ID}
+      - MEDICAL_FITNESS_CRED_DEF_ID=${MEDICAL_FITNESS_CRED_DEF_ID}
+      - NYSC_GREEN_CARD_CRED_DEF_ID=${NYSC_GREEN_CARD_CRED_DEF_ID}
+      - NYSC_ID_CARD_CRED_DEF_ID=${NYSC_ID_CARD_CRED_DEF_ID}
+      - NYSC_CERTIFICATE_CRED_DEF_ID=${NYSC_CERTIFICATE_CRED_DEF_ID}
+      # Proof Configuration
+      - PROOF_REQUEST_ID=${PROOF_REQUEST_ID}
+      - NYSC_PROOF_REQUEST_ID=${NYSC_PROOF_REQUEST_ID}
+      # Webhook Configuration
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+    volumes:
+      # .env file not mounted - use environment variables above instead
+      - ./public:/app/public
+      - ./uploads:/app/uploads
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - nelfund-network
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: nelfund-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-nelfund}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nelfund_password}
+      - POSTGRES_DB=${POSTGRES_DB:-nelfund_demo}
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./prisma/schema.prisma:/docker-entrypoint-initdb.d/schema.prisma:ro
+    restart: unless-stopped
+    networks:
+      - nelfund-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nelfund}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (optional - for session storage and caching)
+  redis:
+    image: redis:7-alpine
+    container_name: nelfund-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - nelfund-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
+  # Cloudflare Tunnel for public access
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: nelfund-cloudflared
+    command: tunnel --config /etc/cloudflared/config.yml run confirmd-demo
+    volumes:
+      - ./cloudflare-tunnel.docker.yml:/etc/cloudflared/config.yml:ro
+      - ${HOME}/.cloudflared/c99d1116-58bd-443e-838f-9a62e2cbb01f.json:/etc/cloudflared/credentials.json:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - nelfund-network
+
+networks:
+  nelfund-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

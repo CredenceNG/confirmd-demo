@@ -1,0 +1,82 @@
+[
+  {
+    "name": "surname",
+    "description": "Student's surname",
+    "credential": "NYSC Green Card"
+  },
+  {
+    "name": "othernames",
+    "description": "Student's other names",
+    "credential": "NYSC Green Card"
+  },
+  {
+    "name": "call_up_number",
+    "description": "NYSC call-up number",
+    "credential": "NYSC Green Card"
+  },
+  {
+    "name": "phone_number",
+    "description": "Contact phone number",
+    "credential": "NYSC Green Card"
+  },
+  {
+    "name": "address",
+    "description": "Contact address",
+    "credential": "NYSC Green Card"
+  },
+  {
+    "name": "matric_number",
+    "description": "Matriculation number",
+    "credential": "Student Card"
+  },
+  {
+    "name": "school_name",
+    "description": "Name of educational institution",
+    "credential": "Student Card"
+  },
+  {
+    "name": "programme",
+    "description": "Academic programme/course of study",
+    "credential": "Student Card"
+  },
+  {
+    "name": "department",
+    "description": "Department of study",
+    "credential": "Student Card"
+  },
+  {
+    "name": "date_of_birth",
+    "description": "Student's date of birth",
+    "credential": "Student Card"
+  },
+  {
+    "name": "class_of_degree",
+    "description": "Degree class (First Class, Second Class Upper, etc.)",
+    "credential": "Statement of Results"
+  },
+  {
+    "name": "awarded_degree",
+    "description": "Degree awarded to the student",
+    "credential": "Statement of Results"
+  },
+  {
+    "name": "year_end",
+    "description": "Year of graduation/completion",
+    "credential": "Statement of Results"
+  },
+  {
+    "name": "fitness_declaration",
+    "description": "Medical fitness declaration for national service",
+    "credential": "Medical Fitness Certificate"
+  },
+  {
+    "name": "blood_group",
+    "description": "Student's blood group",
+    "credential": "Medical Fitness Certificate"
+  },
+  {
+    "name": "genotype",
+    "description": "Student's genotype",
+    "credential": "Medical Fitness Certificate"
+  }
+]

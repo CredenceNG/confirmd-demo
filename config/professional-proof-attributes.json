@@ -1,0 +1,67 @@
+[
+  {
+    "name": "surname",
+    "credential": "Statement of Results",
+    "restrictions": []
+  },
+  {
+    "name": "othernames",
+    "credential": "Statement of Results",
+    "restrictions": []
+  },
+  {
+    "name": "matric_number",
+    "credential": "Statement of Results",
+    "restrictions": []
+  },
+  {
+    "name": "programme",
+    "credential": "Statement of Results",
+    "restrictions": []
+  },
+  {
+    "name": "class_of_degree",
+    "credential": "Statement of Results",
+    "restrictions": []
+  },
+  {
+    "name": "year_end",
+    "credential": "Statement of Results",
+    "restrictions": []
+  },
+  {
+    "name": "awarded_degree",
+    "credential": "Statement of Results",
+    "restrictions": []
+  },
+  {
+    "name": "full_name",
+    "credential": "NYSC Certificate",
+    "restrictions": []
+  },
+  {
+    "name": "call_up_number",
+    "credential": "NYSC Certificate",
+    "restrictions": []
+  },
+  {
+    "name": "start_date",
+    "credential": "NYSC Certificate",
+    "restrictions": []
+  },
+  {
+    "name": "end_date",
+    "credential": "NYSC Certificate",
+    "restrictions": []
+  },
+  {
+    "name": "certificate_number",
+    "credential": "NYSC Certificate",
+    "restrictions": []
+  },
+  {
+    "name": "issued_date",
+    "credential": "NYSC Certificate",
+    "restrictions": []
+  }
+]

@@ -43,7 +43,7 @@ export default function DashboardPage() {
 
             {/* CTA Button */}
             <Link
-              href="/nelfund"
+              href="/loan"
               className="bg-[#f97316] hover:bg-[#ea6a0f] text-white px-6 py-2.5 rounded-lg font-semibold transition-colors"
             >
               Get Started
@@ -82,7 +82,7 @@ export default function DashboardPage() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
-                  href="/nelfund"
+                  href="/loan"
                   className="bg-[#f97316] hover:bg-[#ea6a0f] text-white px-8 py-3.5 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
                 >
                   Try Our Demo
@@ -319,7 +319,7 @@ export default function DashboardPage() {
                   </a>
                 </li>
                 <li>
-                  <a href="/nelfund" className="text-gray-400 hover:text-white transition-colors">
+                  <a href="/loan" className="text-gray-400 hover:text-white transition-colors">
                     Demos
                   </a>
                 </li>

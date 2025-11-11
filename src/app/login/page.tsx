@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
-import Header from "@/components/Header";
 
 type AuthMethod = "wallet" | "password";
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "authenticating";
@@ -65,7 +64,6 @@ export default function LoginPage() {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
       <div className="w-full max-w-5xl">
         {/* Header */}
