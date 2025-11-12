@@ -28,6 +28,13 @@ export async function POST(request: NextRequest) {
 
     console.log("Request body:", body);
 
+    // Get client information (needed for all paths)
+    const userAgent = request.headers.get("user-agent") || undefined;
+    const ipAddress =
+      request.headers.get("x-forwarded-for")?.split(",")[0] ||
+      request.headers.get("x-real-ip") ||
+      undefined;
+
     // If using existing connection, validate it exists first
     if (useExistingConnection && existingConnectionId) {
       logger.info("Attempting to use existing connection", {
@@ -79,13 +86,6 @@ export async function POST(request: NextRequest) {
       // Connection is valid, proceed to create session
       // Generate session ID for tracking
       const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-      // Get client information
-      const userAgent = request.headers.get("user-agent") || undefined;
-      const ipAddress =
-        request.headers.get("x-forwarded-for")?.split(",")[0] ||
-        request.headers.get("x-real-ip") ||
-        undefined;
 
       // Create connection session with existing connectionId
       const session = await createConnectionSession({
