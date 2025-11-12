@@ -17,6 +17,7 @@ interface Demo {
   icon: string;
   features: string[];
   category?: string;
+  tested?: boolean; // Whether the demo has been end-to-end tested
 }
 
 const demos: Demo[] = [
@@ -52,12 +53,13 @@ const demos: Demo[] = [
   },
   {
     id: "academic-universities",
-    title: "Academic Credentials - For Universities",
+    title: "Statement of Results",
     description: "Issue tamper-proof Statement of Results and academic credentials to graduating students. Required for NYSC registration and employment verification.",
     href: "/academic/universities",
     status: "active",
     icon: "🏛️",
     category: "Education",
+    tested: true,
     features: [
       "Issue Statement of Results",
       "Digital transcript generation",
@@ -193,6 +195,7 @@ const demos: Demo[] = [
     status: "active",
     icon: "🏥",
     category: "Healthcare",
+    tested: true,
     features: [
       "Issue Medical Fitness Certificates",
       "Digital health clearance",
@@ -208,6 +211,7 @@ const demos: Demo[] = [
     status: "active",
     icon: "🇳🇬",
     category: "Government & Public Sector",
+    tested: true,
     features: [
       "Multi-stage credential lifecycle",
       "Credential chaining workflow",
@@ -223,6 +227,7 @@ const demos: Demo[] = [
     status: "active",
     icon: "💼",
     category: "Employment",
+    tested: true,
     features: [
       "Dual credential verification (Academic + NYSC)",
       "Instant employer verification",
@@ -298,11 +303,28 @@ const demos: Demo[] = [
     status: "active",
     icon: "🎫",
     category: "Education",
+    tested: true,
     features: [
       "Student identity verification",
       "Admission and matric number confirmation",
       "Department and programme details",
       "Year of graduation validation",
+    ],
+  },
+  {
+    id: "course-registration",
+    title: "Course Registration",
+    description: "Semester course registration for students. Verify student identity with Student Card credential, process payment, and register for courses - all with verifiable credentials.",
+    href: "/education/course-registration",
+    status: "active",
+    icon: "📝",
+    category: "Education",
+    tested: true,
+    features: [
+      "Verify student identity with Student Card",
+      "Semester payment processing",
+      "Course selection and registration",
+      "Privacy-preserving student verification",
     ],
   },
   {
@@ -350,6 +372,68 @@ const demos: Demo[] = [
       "Tamper-proof credential issuance",
     ],
   },
+  {
+    id: "finance-issue-ekyc",
+    title: "Issuing eKYC",
+    description: "Issue verifiable eKYC (electronic Know Your Customer) credentials to customers after identity verification. Financial institutions can digitally credential customers with verified identity information.",
+    href: "/finance/issue-ekyc",
+    status: "active",
+    icon: "🏦",
+    category: "Finance",
+    features: [
+      "Issue digital eKYC credentials",
+      "Customer identity verification",
+      "Regulatory compliance (KYC/AML)",
+      "Secure credential delivery to wallet",
+    ],
+  },
+  {
+    id: "finance-onboarding-ekyc",
+    title: "Onboarding with eKYC",
+    description: "Streamline customer onboarding by verifying eKYC credentials. Banks and fintech companies can instantly verify customer identity using eKYC credentials for account opening and service activation.",
+    href: "/finance/onboarding-ekyc",
+    status: "active",
+    icon: "📱",
+    category: "Finance",
+    features: [
+      "Instant customer identity verification",
+      "Automated KYC compliance",
+      "Faster account opening process",
+      "Reduced onboarding friction",
+    ],
+  },
+  {
+    id: "finance-investment-account",
+    title: "Investment Account Opening",
+    description: "Open investment accounts instantly by reusing existing eKYC credentials from your primary bank. Skip the KYC process entirely and start investing in minutes.",
+    href: "/finance/investment-account",
+    status: "active",
+    icon: "💼",
+    category: "Finance",
+    tested: true,
+    features: [
+      "Skip KYC verification process",
+      "Instant account opening",
+      "Reuse verified eKYC credentials",
+      "Cross-institution credential sharing",
+    ],
+  },
+  {
+    id: "telecoms-signup",
+    title: "Telecoms Service Signup (eKYC Reuse)",
+    description: "Activate mobile services instantly by reusing eKYC credentials from financial institutions. No physical documents or store visits required.",
+    href: "/telecoms/signup",
+    status: "active",
+    icon: "📱",
+    category: "Finance",
+    tested: true,
+    features: [
+      "Instant SIM registration",
+      "Cross-industry eKYC credential reuse",
+      "NCC compliance without friction",
+      "Privacy-preserving verification",
+    ],
+  },
 ];
 
 // Demo Card Component
@@ -389,11 +473,21 @@ const DemoCard = ({
                 <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors line-clamp-2">
                   {demo.title}
                 </h3>
-                {demo.category && (
-                  <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
-                    {demo.category}
-                  </span>
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {demo.category && (
+                    <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                      {demo.category}
+                    </span>
+                  )}
+                  {demo.tested && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Tested
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
