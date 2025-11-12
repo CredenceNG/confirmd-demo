@@ -221,13 +221,6 @@ export async function POST(request: NextRequest) {
       invitationId,
     });
 
-    // Get client information
-    const userAgent = request.headers.get("user-agent") || undefined;
-    const ipAddress =
-      request.headers.get("x-forwarded-for")?.split(",")[0] ||
-      request.headers.get("x-real-ip") ||
-      undefined;
-
     // Create connection session
     const session = await createConnectionSession({
       invitationId,
