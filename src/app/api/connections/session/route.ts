@@ -2,6 +2,7 @@
  * Connection Session API
  *
  * Handles creation and retrieval of connection sessions for wallet integration
+ * Updated: 2025-11-12 - Fixed response mapping for createConnectionInvitation
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -27,12 +28,55 @@ export async function POST(request: NextRequest) {
 
     console.log("Request body:", body);
 
-    // If using existing connection, skip invitation creation
+    // If using existing connection, validate it exists first
     if (useExistingConnection && existingConnectionId) {
-      logger.info("Using existing connection for NELFUND", {
+      logger.info("Attempting to use existing connection", {
         connectionId: existingConnectionId,
       });
 
+      // Validate that the connection exists in the Platform
+      try {
+        const validationResult = await confirmdClient.validateConnection(existingConnectionId);
+
+        if (!validationResult.success || !validationResult.data?.isValid) {
+          logger.warn("Stored connection is no longer valid on Platform", {
+            connectionId: existingConnectionId,
+            error: validationResult.error,
+          });
+
+          return NextResponse.json(
+            {
+              success: false,
+              error: "invalid_connection",
+              message: "The stored connection is no longer valid. Please reconnect.",
+              shouldClearConnection: true,
+            },
+            { status: 410 } // 410 Gone - resource no longer available
+          );
+        }
+
+        logger.info("Connection validated successfully", {
+          connectionId: existingConnectionId,
+        });
+      } catch (validationError: any) {
+        logger.error("Failed to validate connection", {
+          connectionId: existingConnectionId,
+          error: validationError.message,
+        });
+
+        // If validation fails, treat as invalid connection
+        return NextResponse.json(
+          {
+            success: false,
+            error: "validation_failed",
+            message: "Unable to validate connection. Please reconnect.",
+            shouldClearConnection: true,
+          },
+          { status: 410 }
+        );
+      }
+
+      // Connection is valid, proceed to create session
       // Generate session ID for tracking
       const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -74,9 +118,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Otherwise, create new connection invitation
-    // Get organization connection invitation
-    logger.info("Requesting connection invitation from Platform...");
-    const invitationResult = await confirmdClient.getConnectionInvitation();
+    // Try to create a new connection invitation from the Platform
+    logger.info("Creating connection invitation from Platform...");
+    const invitationResult = await confirmdClient.createConnectionInvitation(
+      undefined, // label - use org default
+      false      // multiUseInvitation - single-use per session
+    );
 
     logger.info("Connection invitation result:", {
       success: invitationResult.success,
@@ -84,45 +131,90 @@ export async function POST(request: NextRequest) {
       error: invitationResult.error,
     });
 
+    // If creating new invitation fails, fall back to organizational invitation
     if (!invitationResult.success || !invitationResult.data) {
-      logger.error("Failed to get connection invitation", {
-        success: invitationResult.success,
+      logger.warn("Failed to create new invitation, falling back to organizational invitation", {
         error: invitationResult.error,
-        fullResult: JSON.stringify(invitationResult),
       });
 
-      return NextResponse.json(
-        {
-          error: "failed_to_create_session",
-          message: "Could not retrieve connection invitation from platform",
-          details: invitationResult.error,
+      const fallbackResult = await confirmdClient.getConnectionInvitation();
+
+      if (!fallbackResult.success || !fallbackResult.data) {
+        logger.error("Fallback also failed", {
+          error: fallbackResult.error,
+        });
+
+        return NextResponse.json(
+          {
+            error: "failed_to_create_session",
+            message: "Could not create or retrieve connection invitation from platform",
+            details: invitationResult.error,
+          },
+          { status: 500 }
+        );
+      }
+
+      const invitationUrl = fallbackResult.data;
+      const outOfBandId = (fallbackResult as any).invitationId;
+      const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const invitationId = outOfBandId || sessionId;
+
+      logger.info("Using fallback organizational invitation", {
+        outOfBandId,
+        sessionId,
+        invitationId,
+      });
+
+      // Create connection session
+      const session = await createConnectionSession({
+        invitationId,
+        invitationUrl,
+        requestType: requestType as "registration" | "authentication",
+        userAgent,
+        ipAddress,
+        metadata: {
+          createdVia: "api",
+          method: "fallback-organizational",
         },
-        { status: 500 }
-      );
+      });
+
+      logger.info("Created connection session with fallback", {
+        sessionId: session.sessionId,
+        requestType,
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          sessionId: session.sessionId,
+          invitationUrl: session.invitationUrl,
+          status: session.status,
+          expiresAt: session.expiresAt,
+        },
+      });
     }
 
-    const invitationUrl = invitationResult.data;
+    logger.info("RAW INVITATION RESULT DATA:", {
+      fullData: JSON.stringify(invitationResult.data, null, 2),
+    });
 
-    // Get the outOfBandId from the invitation result for precise webhook matching
-    // This is the ID that will appear in webhook payloads from the Platform
-    const outOfBandId = (invitationResult as any).invitationId;
+    const { invitationUrl, invitationId: outOfBandId } = invitationResult.data;
+
+    logger.info("EXTRACTED VALUES:", {
+      invitationUrl,
+      outOfBandId,
+    });
 
     // Generate session ID that can be tracked
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Use outOfBandId if available, otherwise fall back to sessionId
-    const invitationId = outOfBandId || sessionId;
+    // Use the outOfBandId from the Platform for webhook matching
+    const invitationId = outOfBandId;
 
-    if (outOfBandId) {
-      logger.info("Using outOfBandId from Platform for webhook matching", {
-        outOfBandId,
-        sessionId
-      });
-    } else {
-      logger.warn("No outOfBandId available, using sessionId as invitationId", {
-        sessionId,
-      });
-    }
+    logger.info("Using outOfBandId from Platform for webhook matching", {
+      outOfBandId,
+      sessionId
+    });
 
     logger.info("Retrieved organization invitation", {
       sessionId,
