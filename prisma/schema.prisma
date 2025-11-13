@@ -162,6 +162,31 @@ model NYSCRegistration {
 }
 
 // ============================================
+// Demo Session Management Models
+// ============================================
+
+model DemoSession {
+  id             String   @id @default(uuid())
+  sessionId      String   // Browser session ID (from cookie, cleared on browser close)
+  deviceId       String   // Device ID (from localStorage, persists across sessions)
+  connectionId   String?  // ConfirmD connection ID
+  demoType       String   // "loan", "nysc", "course-registration", "student-card", etc.
+  status         String   @default("active") // active, completed, abandoned, expired
+  startedAt      DateTime @default(now())
+  endedAt        DateTime?
+  lastActivityAt DateTime @default(now())
+
+  // Optional metadata
+  metadata       String?  // JSON string for additional demo-specific data
+
+  @@index([sessionId, demoType])
+  @@index([deviceId, status])
+  @@index([connectionId])
+  @@index([demoType, status])
+  @@index([status, lastActivityAt])
+}
+
+// ============================================
 // Loan Application Models
 // ============================================
 
