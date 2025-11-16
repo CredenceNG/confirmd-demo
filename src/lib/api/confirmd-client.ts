@@ -440,39 +440,140 @@ class ConfirmdClient {
     state: string;
   }>> {
     try {
-      // TEMPORARY FALLBACK: Use the old getConnectionInvitation method
-      // This bypasses the new API endpoint and uses the pre-existing multi-use invitation
-      console.log("[ConfirmdClient] Using fallback method: getConnectionInvitation");
-      const fallbackResult = await this.getConnectionInvitation();
-
-      if (fallbackResult.success && fallbackResult.data) {
-        console.log("[ConfirmdClient] Fallback succeeded, invitation URL obtained");
+      const orgId = process.env.CONFIRMD_ORG_ID;
+      if (!orgId) {
         return {
-          success: true,
-          data: {
-            invitationId: `inv-${Date.now()}`,
-            invitationUrl: fallbackResult.data,
-            state: 'created',
+          success: false,
+          error: {
+            error: "missing_organization_id",
+            error_description: "CONFIRMD_ORG_ID not found in environment variables",
           },
         };
       }
 
-      console.error("[ConfirmdClient] Fallback also failed:", fallbackResult.error);
+      console.log("[ConfirmdClient] Creating connection invitation", {
+        orgId,
+        label,
+        multiUse,
+      });
+
+      // Prepare request payload
+      const payload: any = {
+        multiUseInvitation: multiUse,
+        autoAcceptConnection: true,
+      };
+
+      // Add label if provided
+      if (label) {
+        payload.label = label;
+        payload.alias = label;
+      }
+
+      console.log("[ConfirmdClient] Connection invitation payload:", payload);
+
+      // Call ConfirmD Platform API to create connection
+      const response = await this.axiosInstance.post<ConfirmdPlatformResponse<{
+        id: string;
+        connectionInvitation: string;
+        multiUse: boolean;
+      }>>(
+        `/orgs/${orgId}/connections`,
+        payload
+      );
+
+      console.log("[ConfirmdClient] RAW API RESPONSE:", JSON.stringify(response.data, null, 2));
+
+      console.log("[ConfirmdClient] Connection invitation created successfully", {
+        id: response.data.data.id,
+        connectionInvitation: response.data.data.connectionInvitation,
+        multiUse: response.data.data.multiUse,
+      });
+
       return {
-        success: false,
-        error: fallbackResult.error || {
-          error: "invitation_creation_failed",
-          error_description: "Failed to create or retrieve invitation",
+        success: true,
+        data: {
+          invitationId: response.data.data.id,
+          invitationUrl: response.data.data.connectionInvitation,
+          state: "invitation",
         },
       };
     } catch (error: any) {
+      console.error("[ConfirmdClient] Failed to create connection invitation:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+
       return {
         success: false,
         error: {
           error: "invitation_creation_failed",
           error_description:
-            error.message || "Failed to create connection invitation",
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to create connection invitation",
         },
+      };
+    }
+  }
+
+  /**
+   * Validate that a connection still exists on the Platform
+   * @param connectionId - Connection ID to validate
+   * @returns Validation result with isValid flag
+   */
+  async validateConnection(connectionId: string): Promise<ConfirmdApiResponse<{ isValid: boolean }>> {
+    try {
+      const orgId = process.env.CONFIRMD_ORG_ID;
+      if (!orgId) {
+        return {
+          success: false,
+          error: {
+            error: "missing_organization_id",
+            error_description: "CONFIRMD_ORG_ID not found in environment variables",
+          },
+        };
+      }
+
+      console.log("[ConfirmdClient] Validating connection:", connectionId);
+
+      // Try to fetch the connection from the Platform
+      const response = await this.axiosInstance.get(
+        `/orgs/${orgId}/connections/${connectionId}`
+      );
+
+      console.log("[ConfirmdClient] Connection validation response:", {
+        status: response.status,
+        connectionId,
+        state: response.data?.data?.state,
+      });
+
+      // Connection exists if we get a 200 response
+      const isValid = response.status === 200 && response.data?.data;
+
+      return {
+        success: true,
+        data: { isValid },
+      };
+    } catch (error: any) {
+      console.warn("[ConfirmdClient] Connection validation failed:", {
+        connectionId,
+        status: error.response?.status,
+        message: error.message,
+      });
+
+      // If we get 404, the connection doesn't exist
+      if (error.response?.status === 404) {
+        return {
+          success: true,
+          data: { isValid: false },
+        };
+      }
+
+      // For other errors, return error response
+      return {
+        success: false,
+        error: this.handleError(error),
       };
     }
   }

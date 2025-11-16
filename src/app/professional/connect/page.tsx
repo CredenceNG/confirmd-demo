@@ -1,6 +1,6 @@
 /**
- * Professional Job Portal - Connect/Verification Page
- * Handles proof request for Statement of Result and NYSC Certificate
+ * Professional Credential Verification - Connect Page
+ * Connect wallet and request proof of Statement of Results and NYSC Certificate
  */
 "use client";
 
@@ -148,6 +148,36 @@ export default function ProfessionalConnectPage() {
 
       const data = await response.json();
 
+      // Check if connection validation failed (410 Gone status)
+      if (response.status === 410 || data.shouldClearConnection) {
+        console.warn('[Professional] Stored connection is no longer valid:', data.error);
+
+        // Clear the invalid connection from storage
+        clearConnection();
+
+        // Show user-friendly error message
+        setConnectionMessage(
+          data.message ||
+          "Your saved connection has expired or is no longer available on the server. Please reconnect by scanning the QR code."
+        );
+        setConnectionStatus("disconnected");
+
+        // Show alert with guidance
+        alert(
+          "Connection No Longer Available\n\n" +
+          data.message + "\n\n" +
+          "This can happen if:\n" +
+          "• The server database was reset\n" +
+          "• The connection expired\n" +
+          "• Too much time has passed since your last connection\n\n" +
+          "Solution:\n" +
+          "Click 'Connect Wallet' below to create a new connection."
+        );
+
+        setIsLoadingInvitation(false);
+        return;
+      }
+
       if (data.success && data.data) {
         const newSessionId = data.data.sessionId;
 
@@ -166,8 +196,11 @@ export default function ProfessionalConnectPage() {
         console.error('[Professional] Failed to create session:', data.error);
         setConnectionMessage("Failed to use existing connection. Please reconnect.");
         setConnectionStatus("disconnected");
-        // Clear invalid connection
-        clearConnection();
+
+        // Clear invalid connection if server indicated to do so
+        if (data.shouldClearConnection) {
+          clearConnection();
+        }
       }
     } catch (error) {
       console.error('[Professional] Error creating session:', error);
@@ -289,56 +322,38 @@ export default function ProfessionalConnectPage() {
   const qrCodeValue = invitationUrl || `techcorp://connect?sessionId=${sessionId}&requestType=professional`;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Role Banner */}
-      <div className="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-xl shadow-lg p-4 sm:p-6 mb-8 text-white">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="text-4xl sm:text-5xl">💼</div>
-            <div>
-              <h2 className="text-lg sm:text-2xl font-bold mb-1">
-                You are: Recent Graduate
-              </h2>
-              <p className="text-blue-100 text-sm sm:text-base">
-                Goal: Share your verified credentials to complete job application
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-lg self-start sm:self-auto">
-            <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            <span className="text-xs sm:text-sm font-medium">Step 2 of 4</span>
-          </div>
-        </div>
-      </div>
-
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back Link */}
       <div className="mb-6">
         <button
-          onClick={() => router.push("/professional/intro")}
+          onClick={() => router.push("/professional")}
           className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Prerequisites
+          Back to Demo
         </button>
       </div>
 
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            {/* Title Section */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-6">
-              <h2 className="text-2xl font-bold text-white">TechCorp Job Application - Credential Verification</h2>
-              <p className="text-blue-100 mt-1">
-                Connect your digital wallet to share your verified academic and NYSC credentials
-              </p>
-            </div>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-6">
+          <div className="text-center">
+            <div className="text-5xl mb-3">💼</div>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              Professional Credential Verification
+            </h1>
+            <p className="text-blue-100">
+              Connect your wallet to share Statement of Results and NYSC Certificate
+            </p>
+          </div>
+        </div>
 
-            <div className="p-6">
-              {connectionStatus === "disconnected" && (
-                <div className="text-center py-12">
-                  <div className="max-w-md mx-auto">
+        <div className="p-6">
+          {connectionStatus === "disconnected" && (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
                     <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                       <svg
                         className="w-10 h-10 text-blue-600"
@@ -355,39 +370,11 @@ export default function ProfessionalConnectPage() {
                       </svg>
                     </div>
                     <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                      Connect Your Digital Wallet
+                      Connect Your Wallet
                     </h3>
-                    <p className="text-gray-600 mb-4">
-                      Click the button below to generate a QR code. Scan it with your ConfirmD App
-                      to securely share your academic credentials and NYSC certificate.
+                    <p className="text-gray-600 mb-6">
+                      Scan the QR code with your ConfirmD app to securely share your Statement of Results and NYSC Certificate.
                     </p>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-                      <h4 className="font-semibold text-blue-900 mb-2">What will be requested:</h4>
-                      <div className="grid md:grid-cols-2 gap-3 text-sm text-blue-800">
-                        <div>
-                          <p className="font-medium mb-1">📜 Statement of Result:</p>
-                          <ul className="space-y-0.5 pl-4">
-                            <li>• Full Name</li>
-                            <li>• Matric Number</li>
-                            <li>• Programme/Course</li>
-                            <li>• Class of Degree</li>
-                            <li>• Graduation Year</li>
-                            <li>• School Name</li>
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="font-medium mb-1">🎓 NYSC Certificate:</p>
-                          <ul className="space-y-0.5 pl-4">
-                            <li>• Full Name</li>
-                            <li>• Call-up Number</li>
-                            <li>• Service Start Date</li>
-                            <li>• Service End Date</li>
-                            <li>• Certificate Number</li>
-                            <li>• Issue Date</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                       <button
                         onClick={initiateConnection}
@@ -490,22 +477,16 @@ export default function ProfessionalConnectPage() {
                       </svg>
                     </div>
                     <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                      {connectionStatus === "proof-received" ? "Credentials Verified!" : "Requesting Academic & NYSC Credentials"}
+                      {connectionStatus === "proof-received" ? "Credentials Verified!" : "Requesting Credentials"}
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      {connectionMessage || "Please approve the credential request in your wallet app..."}
+                      {connectionMessage || "Please approve the request in your wallet..."}
                     </p>
                     {proofStatus && (
                       <div className="text-sm text-gray-500">
                         Status: <span className="font-medium">{proofStatus}</span>
                       </div>
                     )}
-                    <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-sm text-blue-800">
-                        <strong>Note:</strong> You will be asked to approve sharing both your Statement of Result
-                        and NYSC Certificate in your wallet app.
-                      </p>
-                    </div>
                   </div>
                 </div>
               )}
@@ -537,26 +518,21 @@ export default function ProfessionalConnectPage() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Help Section */}
-          <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Need Help?</h3>
-            <div className="space-y-3 text-sm text-gray-600">
-              <p>
-                <strong>Don't have the ConfirmD App?</strong> Download it from the App Store or Google Play.
-              </p>
-              <p>
-                <strong>Missing credentials?</strong> Contact your university for Statement of Result or NYSC for your certificate.
-              </p>
-              <p>
-                <strong>Having connection issues?</strong> Make sure you have a stable internet connection and try again.
-              </p>
-            </div>
           </div>
         </div>
-      </div>
+
+        {/* Help Section */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Need the ConfirmD App?
+          </h4>
+          <p className="text-sm text-blue-800">
+            Download it from the App Store or Google Play. You'll need Statement of Results and NYSC Certificate credentials in your wallet.
+          </p>
+        </div>
     </div>
   );
 }

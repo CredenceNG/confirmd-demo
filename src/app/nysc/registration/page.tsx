@@ -218,13 +218,41 @@ export default function NYSCRegistrationPage() {
         }
         setConnectionMessage("Proof request sent! Please share your Student Card and Statement of Result from your wallet...");
       } else {
-        console.error('[NYSC Registration] Failed to send proof request:', data.error);
-        setConnectionMessage("Failed to request credentials. Please try again.");
+        // Extract error details properly
+        const errorType = data.error?.error || 'unknown_error';
+        const errorDescription = data.error?.error_description || data.message || 'Failed to request credentials';
+
+        console.error('[NYSC Registration] Failed to send proof request', {
+          error: errorType,
+          description: errorDescription,
+          fullError: data.error,
+          fullResponse: data
+        });
+
+        // Show user-friendly error message
+        if (errorType === 'network_error' || errorDescription.includes('socket hang up')) {
+          setConnectionMessage(
+            "⚠️ Connection Error: Unable to reach ConfirmD Platform. " +
+            "This is usually temporary. Please wait a moment and try again."
+          );
+        } else if (errorType === 'proof_request_failed') {
+          setConnectionMessage(`Failed to request credentials: ${errorDescription}`);
+        } else {
+          setConnectionMessage(`Error: ${errorDescription}`);
+        }
+
         setConnectionStatus("connected");
       }
-    } catch (error) {
-      console.error('[NYSC Registration] Error sending proof request:', error);
-      setConnectionMessage("Error requesting credentials. Please try again.");
+    } catch (error: any) {
+      console.error('[NYSC Registration] Network/Parse error sending proof request:', {
+        message: error.message,
+        stack: error.stack,
+        error
+      });
+      setConnectionMessage(
+        "⚠️ Network Error: Unable to connect to the server. " +
+        "Please check your internet connection and try again."
+      );
       setConnectionStatus("connected");
     }
   };

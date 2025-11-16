@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Link from "next/link";
+import { DemoSessionProvider } from "@/contexts/DemoSessionContext";
+import GlobalLeaveDemoButton from "@/components/GlobalLeaveDemoButton";
 
 export const metadata: Metadata = {
   title: "Confirmd Demos - Verifiable Credential Use Cases",
@@ -15,12 +17,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              {/* Logo and Brand */}
-              <Link href="/" className="flex items-center gap-3 group">
+        <DemoSessionProvider>
+          {/* Header */}
+          <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                {/* Logo and Brand */}
+                <Link href="/" className="flex items-center gap-3 group">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
                   <svg
                     width="28"
@@ -52,6 +55,7 @@ export default function RootLayout({
 
               {/* Navigation Links */}
               <div className="flex items-center gap-2">
+                <GlobalLeaveDemoButton />
                 <Link
                   href="/articles"
                   className="px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all font-medium"
@@ -98,6 +102,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        </DemoSessionProvider>
       </body>
     </html>
   );
