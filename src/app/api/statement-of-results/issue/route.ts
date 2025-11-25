@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
       othernames,
       admissionNumber,
       matricNumber,
-      Department,
-      Faculty,
+      department,
+      faculty,
       programme,
       yearStart,
       yearEnd,
@@ -46,11 +46,19 @@ export async function POST(request: NextRequest) {
     });
 
     // Validate required fields
-    if (!email || !phoneNumber || !surname || !othernames || !classOfDegree || !awardedDegree) {
+    if (
+      !email ||
+      !phoneNumber ||
+      !surname ||
+      !othernames ||
+      !classOfDegree ||
+      !awardedDegree
+    ) {
       return NextResponse.json(
         {
           error: "Missing required fields",
-          message: "Email, phone number, surname, othernames, class of degree, and awarded degree are required",
+          message:
+            "Email, phone number, surname, othernames, class of degree, and awarded degree are required",
         },
         { status: 400 }
       );
@@ -65,17 +73,27 @@ export async function POST(request: NextRequest) {
     let credentialDefinitionId = process.env.STATEMENT_OF_RESULT_CRED_DEF_ID;
 
     // Check if it's a placeholder value
-    if (!credentialDefinitionId || credentialDefinitionId.includes("PLACEHOLDER")) {
-      console.warn("[Statement of Results API] STATEMENT_OF_RESULT_CRED_DEF_ID not configured, falling back to ISSUE_CRED_DEF_ID");
-      credentialDefinitionId = process.env.ISSUE_CRED_DEF_ID || "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2968758:Current Student Credential";
+    if (
+      !credentialDefinitionId ||
+      credentialDefinitionId.includes("PLACEHOLDER")
+    ) {
+      console.warn(
+        "[Statement of Results API] STATEMENT_OF_RESULT_CRED_DEF_ID not configured, falling back to ISSUE_CRED_DEF_ID"
+      );
+      credentialDefinitionId =
+        process.env.ISSUE_CRED_DEF_ID ||
+        "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2968758:Current Student Credential";
 
       // If it's still a placeholder, return a helpful error
       if (credentialDefinitionId.includes("PLACEHOLDER")) {
-        console.error("[Statement of Results API] Credential definition not configured properly");
+        console.error(
+          "[Statement of Results API] Credential definition not configured properly"
+        );
         return NextResponse.json(
           {
             error: "Configuration Error",
-            message: "Statement of Results credential definition is not configured. Please update STATEMENT_OF_RESULT_CRED_DEF_ID in your .env file with a valid credential definition ID. For this demo, the system will use the Student Card credential definition as a fallback.",
+            message:
+              "Statement of Results credential definition is not configured. Please update STATEMENT_OF_RESULT_CRED_DEF_ID in your .env file with a valid credential definition ID. For this demo, the system will use the Student Card credential definition as a fallback.",
             fallbackUsed: true,
           },
           { status: 500 }
@@ -85,18 +103,30 @@ export async function POST(request: NextRequest) {
 
     // Helper function to ensure no null/undefined values
     const ensureValue = (value: any, defaultValue: string = "N/A"): string => {
-      if (value === undefined || value === null || value === "undefined" || value === "null" || value === "") {
-        console.log(`[ensureValue] Using default "${defaultValue}" for value:`, value);
+      if (
+        value === undefined ||
+        value === null ||
+        value === "undefined" ||
+        value === "null" ||
+        value === ""
+      ) {
+        console.log(
+          `[ensureValue] Using default "${defaultValue}" for value:`,
+          value
+        );
         return defaultValue;
       }
       return String(value);
     };
 
     // Generate school reference number if not provided
-    const refNumber = schoolRefNumber || `SOR/${new Date().getFullYear()}/${Date.now().toString().slice(-6)}`;
+    const refNumber =
+      schoolRefNumber ||
+      `SOR/${new Date().getFullYear()}/${Date.now().toString().slice(-6)}`;
 
     // Use provided issue date or current date
-    const certificateIssuedDate = issuedDate || new Date().toISOString().split("T")[0];
+    const certificateIssuedDate =
+      issuedDate || new Date().toISOString().split("T")[0];
 
     // Calculate expiry date (5 years from issue date)
     const expiryDate = new Date(certificateIssuedDate);
@@ -120,13 +150,13 @@ export async function POST(request: NextRequest) {
               isRequired: true,
             },
             {
-              value: ensureValue(Department, "Not Specified"),
-              name: "Department",
+              value: ensureValue(department, "Not Specified"),
+              name: "department",
               isRequired: true,
             },
             {
-              value: ensureValue(Faculty, "Not Specified"),
-              name: "Faculty",
+              value: ensureValue(faculty, "Not Specified"),
+              name: "faculty",
               isRequired: true,
             },
             {
@@ -165,7 +195,10 @@ export async function POST(request: NextRequest) {
               isRequired: true,
             },
             {
-              value: ensureValue(yearStart, new Date().getFullYear().toString()),
+              value: ensureValue(
+                yearStart,
+                new Date().getFullYear().toString()
+              ),
               name: "year_start",
               isRequired: true,
             },
@@ -186,7 +219,10 @@ export async function POST(request: NextRequest) {
 
     console.log("[Statement of Results API] Issuing credential...");
     console.log("[Statement of Results API] API URL:", apiUrl);
-    console.log("[Statement of Results API] Payload:", JSON.stringify(payload, null, 2));
+    console.log(
+      "[Statement of Results API] Payload:",
+      JSON.stringify(payload, null, 2)
+    );
 
     const response = await axios.post(apiUrl, payload, {
       headers: {
@@ -217,7 +253,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "API Error",
-          message: error.response?.data?.message || error.message || "Failed to issue Statement of Results",
+          message:
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to issue Statement of Results",
           details: error.response?.data,
         },
         { status: error.response?.status || 500 }
