@@ -71,9 +71,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Otherwise, create new connection invitation
-    logger.info("Requesting connection invitation from Platform...");
-    const invitationResult = await confirmdClient.getConnectionInvitation();
+    // Create a new single-use connection invitation (recommended pattern)
+    logger.info("Creating single-use connection invitation from Platform...");
+    const invitationResult = await confirmdClient.createConnectionInvitation(
+      "Professional Membership Verification",
+      false // single-use invitation
+    );
 
     logger.info("Connection invitation result:", {
       success: invitationResult.success,
@@ -82,7 +85,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!invitationResult.success || !invitationResult.data) {
-      logger.error("Failed to get connection invitation", {
+      logger.error("Failed to create connection invitation", {
         success: invitationResult.success,
         error: invitationResult.error,
       });
@@ -92,7 +95,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: {
             error: "failed_to_create_session",
-            error_description: "Could not retrieve connection invitation from platform",
+            error_description: "Could not create connection invitation from platform",
             details: invitationResult.error,
           },
         },
@@ -100,11 +103,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const invitationUrl = invitationResult.data;
+    const { invitationId, invitationUrl } = invitationResult.data;
 
     // Generate session ID for tracking
-    const sessionId = `prof-verify-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const invitationId = sessionId;
+    const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     logger.info("Retrieved organization invitation", {
       sessionId,
