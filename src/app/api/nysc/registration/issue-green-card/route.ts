@@ -115,14 +115,14 @@ export async function POST(request: NextRequest) {
     logger.info("Found connectionId for session", { sessionId, connectionId });
 
     // Step 2: Fetch the proof details from ConfirmD
-    const orgId = process.env.NYSC_ORG_ID || process.env.CONFIRMD_ORG_ID;
+    const orgId = process.env.CONFIRMD_ORG_ID;
     if (!orgId) {
       return NextResponse.json(
         {
           success: false,
           error: {
             error: "configuration_error",
-            error_description: "NYSC_ORG_ID not configured",
+            error_description: "CONFIRMD_ORG_ID not configured",
           },
         },
         { status: 500 }
