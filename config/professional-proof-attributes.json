@@ -1,67 +1,54 @@
 [
   {
     "name": "surname",
-    "credential": "Statement of Results",
-    "restrictions": []
+    "credential": "Statement of Results"
   },
   {
     "name": "othernames",
-    "credential": "Statement of Results",
-    "restrictions": []
+    "credential": "Statement of Results"
   },
   {
     "name": "matric_number",
-    "credential": "Statement of Results",
-    "restrictions": []
+    "credential": "Statement of Results"
   },
   {
     "name": "programme",
-    "credential": "Statement of Results",
-    "restrictions": []
+    "credential": "Statement of Results"
   },
   {
     "name": "class_of_degree",
-    "credential": "Statement of Results",
-    "restrictions": []
+    "credential": "Statement of Results"
   },
   {
     "name": "year_end",
-    "credential": "Statement of Results",
-    "restrictions": []
+    "credential": "Statement of Results"
   },
   {
     "name": "awarded_degree",
-    "credential": "Statement of Results",
-    "restrictions": []
+    "credential": "Statement of Results"
   },
   {
     "name": "full_name",
-    "credential": "NYSC Certificate",
-    "restrictions": []
+    "credential": "NYSC Certificate"
   },
   {
     "name": "call_up_number",
-    "credential": "NYSC Certificate",
-    "restrictions": []
+    "credential": "NYSC Certificate"
   },
   {
     "name": "start_date",
-    "credential": "NYSC Certificate",
-    "restrictions": []
+    "credential": "NYSC Certificate"
   },
   {
     "name": "end_date",
-    "credential": "NYSC Certificate",
-    "restrictions": []
+    "credential": "NYSC Certificate"
   },
   {
     "name": "certificate_number",
-    "credential": "NYSC Certificate",
-    "restrictions": []
+    "credential": "NYSC Certificate"
   },
   {
     "name": "issued_date",
-    "credential": "NYSC Certificate",
-    "restrictions": []
+    "credential": "NYSC Certificate"
   }
 ]
