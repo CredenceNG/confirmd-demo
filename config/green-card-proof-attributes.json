@@ -2,71 +2,51 @@
   {
     "name": "surname",
     "description": "Surname from Green Card",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   },
   {
     "name": "othernames",
     "description": "Other names from Green Card",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   },
   {
     "name": "call_up_number",
     "description": "NYSC call-up number",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   },
   {
     "name": "address",
     "description": "Contact address",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   },
   {
     "name": "phone_number",
     "description": "Contact phone number",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   },
   {
     "name": "emergency_contact_fullname",
     "description": "Emergency contact full name",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   },
   {
     "name": "emergency_contact_phone_number",
     "description": "Emergency contact phone number",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   },
   {
     "name": "emergency_contact_relationship",
     "description": "Emergency contact relationship",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   },
   {
     "name": "emergency_contact_address",
     "description": "Emergency contact address",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   },
   {
     "name": "service_perssonnel",
     "description": "Service personnel status",
-    "credential": "NYSC Green Card",
-    "schemaId": "GRGDLMFpSpRSnwUTgW55Mf:2:NYSC GREEN CARD:0.1",
-    "credDefId": "NxbvVcdwR5a2oyiYa6UbPP:3:CL:2973713:NYSC Green Card Credential"
+    "credential": "NYSC Green Card"
   }
 ]

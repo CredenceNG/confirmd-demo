@@ -1,10 +1,5 @@
-version: "3.8"
-
-# Development override for docker-compose.yml
-# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
-
 services:
-  app:
+  demo-app:
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -12,20 +7,54 @@ services:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
     volumes:
-      # Mount source code for hot reload
       - .:/app
       - /app/node_modules
       - /app/.next
       - ./.env:/app/.env:ro
     command: npm run dev
-    ports:
-      - "3302:3300"
-      - "9229:9229" # Node.js debugger
+    # Optional direct ports
+    #ports:
+    #- "3300:3300"  # access without Traefik
+    # - "9229:9229"  # debugger
+    networks:
+      - traefik-network
+      - confirmd-platform_default
+    labels:
+      - "traefik.enable=true"
+
+      # Bind to Traefik network
+      - "traefik.docker.network=traefik-network"
+
+      # Route for demo.getconfirmd.com
+      - "traefik.http.routers.demo_app.rule=Host(`demo.getconfirmd.com`)"
+      - "traefik.http.routers.demo_app.entrypoints=websecure"
+      - "traefik.http.routers.demo_app.tls=true"
+      - "traefik.http.routers.demo_app.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.demo_app.service=demo_app"
+
+      # Internal Next.js dev port
+      - "traefik.http.services.demo_app.loadbalancer.server.port=3300"
 
   db:
-    ports:
-      - "5435:5432"
+    image: postgres:15
+    container_name: demo-db
     environment:
       - POSTGRES_USER=nelfund_dev
       - POSTGRES_PASSWORD=nelfund_dev_password
       - POSTGRES_DB=nelfund_demo_dev
+    ports:
+      - "5435:5432"
+    volumes:
+      - demo_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - traefik-network # automatically internal only (Traefik will ignore it)
+
+volumes:
+  demo_db_data:
+
+networks:
+  confirmd-platform_default:
+    external: true
+  traefik-network:
+    external: true

@@ -53,6 +53,10 @@ export function getCredentialMappings(): Record<string, CredentialMapping> {
       schemaId: process.env.NYSC_CERTIFICATE_SCHEMA_ID || "",
       credDefId: process.env.NYSC_CERTIFICATE_CRED_DEF_ID,
     },
+    "eKYC": {
+      schemaId: process.env.EKYC_SCHEMA_ID || "",
+      credDefId: process.env.EKYC_CRED_DEF_ID,
+    },
   };
 }
 
