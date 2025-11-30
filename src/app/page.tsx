@@ -188,6 +188,21 @@ const demos: Demo[] = [
     ],
   },
   {
+    id: "health-kiosk",
+    title: "Health Sector - Hospital Kiosk Check-In",
+    description: "Self-service hospital kiosk for patient check-in using Health Card credentials. Patients scan a QR code with their wallet to verify identity and receive a visit number with department directions.",
+    href: "/health/kiosk",
+    status: "active",
+    icon: "🖥️",
+    category: "Healthcare",
+    features: [
+      "Self-service kiosk check-in",
+      "Health Card credential verification",
+      "Automatic visit number generation",
+      "Department and room assignment",
+    ],
+  },
+  {
     id: "medical-fitness",
     title: "Medical Fitness Certificate - For Medical Centers",
     description: "Issue verifiable Medical Fitness Certificates to graduating students. Required for NYSC registration and employment. Streamline health clearance verification.",
