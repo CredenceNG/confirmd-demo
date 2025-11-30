@@ -285,15 +285,29 @@ export default function VerifyTrainingCertificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-gradient-to-r from-blue-800 via-blue-700 to-indigo-800 text-white shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <span className="text-2xl">🛢️</span>
+                </div>
+                <div>
+                  <h2 className="font-bold text-lg">Atlantic Energy Nigeria</h2>
+                  <p className="text-blue-200 text-xs">HR Safety Compliance Portal</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="px-3 py-1 bg-green-500/20 text-green-200 border border-green-400/30 rounded-full text-xs font-medium">
+                Mandatory Training Verification
+              </span>
               <Link
                 href="/"
-                className="text-purple-600 hover:text-purple-700 font-semibold text-sm flex items-center gap-1"
+                className="text-blue-200 hover:text-white text-sm flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -301,10 +315,24 @@ export default function VerifyTrainingCertificationPage() {
                 Back to Demos
               </Link>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                Employer Portal
-              </span>
+          </div>
+        </div>
+        {/* Story Context Banner */}
+        <div className="bg-blue-900/50 border-t border-blue-600/30 px-4 py-3">
+          <div className="container mx-auto">
+            <div className="flex items-start gap-3">
+              <div className="text-xl">⚠️</div>
+              <div>
+                <p className="text-sm text-blue-100">
+                  <strong>The Challenge:</strong> Atlantic Energy manages 2,500+ offshore workers across 12 platforms.
+                  A 2023 near-miss incident revealed that 15% of deployed workers had expired or fraudulent safety certifications.
+                  Paper certificates were easily forged, and manual verification took 3-5 days per worker.
+                </p>
+                <p className="text-sm text-blue-200 mt-1">
+                  <strong>The Solution:</strong> Workers now present digital credentials from their wallet. HR verifies in seconds,
+                  not days. No more fake certificates. No more compliance gaps.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -313,17 +341,17 @@ export default function VerifyTrainingCertificationPage() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Title Section */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Verify Training Certification
+            Verify Worker Safety Certification
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Instantly verify candidate training certifications for employment decisions.
-            Request proof of professional training credentials from job applicants.
+            Before offshore deployment, verify that workers hold valid, unexpired safety certifications.
+            Instant cryptographic verification ensures compliance and prevents deployment of unqualified personnel.
           </p>
         </div>
 
@@ -333,55 +361,63 @@ export default function VerifyTrainingCertificationPage() {
             <div className="p-8">
               <div className="text-center mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  Request Training Credential Verification
+                  Pre-Deployment Safety Certification Check
                 </h2>
                 <p className="text-gray-600">
-                  Generate a QR code for the candidate to scan with their digital wallet
+                  Verify worker has valid mandatory safety training before offshore deployment
                 </p>
               </div>
 
-              {/* How It Works */}
-              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 mb-8">
-                <h3 className="font-semibold text-purple-900 mb-4 flex items-center gap-2">
+              {/* Deployment Checklist */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-8">
+                <h3 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                   </svg>
-                  How Verification Works
+                  Verification Process
                 </h3>
-                <ol className="space-y-3 text-sm text-purple-800">
+                <ol className="space-y-3 text-sm text-blue-800">
                   <li className="flex items-start gap-3">
-                    <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">1</span>
-                    <span>Click "Start Verification" to generate a connection QR code</span>
+                    <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">1</span>
+                    <span>Click "Verify Worker" to generate a secure QR code</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">2</span>
-                    <span>Candidate scans the QR code with their ConfirmD wallet app to connect</span>
+                    <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">2</span>
+                    <span>Worker scans the QR code with their digital wallet app</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">3</span>
-                    <span>After connection, a proof request is automatically sent to their wallet</span>
+                    <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">3</span>
+                    <span>Worker selects and shares their safety certification credential</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">4</span>
-                    <span>Candidate approves sharing and credentials are cryptographically verified</span>
+                    <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">4</span>
+                    <span>System cryptographically verifies authenticity, issuer, and expiry date</span>
                   </li>
                 </ol>
               </div>
 
-              {/* Prerequisite Notice */}
+              {/* Required Certifications */}
               <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 mb-8">
                 <div className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                   <div>
-                    <h4 className="font-semibold text-amber-900 mb-1">Candidate Prerequisites</h4>
-                    <p className="text-sm text-amber-800">
-                      The candidate must have a Training Certification credential in their ConfirmD wallet.
-                      If they don't have one, they can obtain it from the{" "}
-                      <Link href="/training/issue-certification" className="text-purple-600 underline font-medium hover:text-purple-800">
-                        Training Organization Demo
-                      </Link>.
+                    <h4 className="font-semibold text-amber-900 mb-1">Mandatory Offshore Certifications</h4>
+                    <p className="text-sm text-amber-800 mb-2">
+                      Per NSITF regulations, all offshore workers must hold valid certifications for:
+                    </p>
+                    <ul className="text-xs text-amber-700 space-y-1">
+                      <li>• BOSIET/HUET (Helicopter Underwater Escape Training)</li>
+                      <li>• H2S Safety & Breathing Apparatus</li>
+                      <li>• Offshore Fire Fighting & Prevention</li>
+                      <li>• Advanced First Aid</li>
+                    </ul>
+                    <p className="text-xs text-amber-600 mt-2 italic">
+                      Demo: Worker can obtain certification from{" "}
+                      <Link href="/training/issue-certification" className="text-blue-600 underline font-medium hover:text-blue-800">
+                        SafetyFirst Academy Portal
+                      </Link>
                     </p>
                   </div>
                 </div>
@@ -390,7 +426,7 @@ export default function VerifyTrainingCertificationPage() {
               <button
                 onClick={initiateConnection}
                 disabled={isLoadingInvitation}
-                className="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-lg rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center justify-center gap-3">
                   {isLoadingInvitation ? (
@@ -403,9 +439,9 @@ export default function VerifyTrainingCertificationPage() {
                   ) : (
                     <>
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>
-                      Start Verification
+                      Verify Worker Certification
                     </>
                   )}
                 </div>
@@ -418,41 +454,41 @@ export default function VerifyTrainingCertificationPage() {
             <div className="p-8">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Scan QR Code to Connect
+                  Worker Verification Check
                 </h2>
                 <p className="text-gray-600">
-                  Ask the candidate to scan this QR code with their ConfirmD wallet
+                  Ask the worker to scan this QR code with their digital wallet to share their safety certification
                 </p>
               </div>
 
               {/* QR Code */}
-              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-8 mb-6 border-2 border-purple-200">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 mb-6 border-2 border-blue-200">
                 <div className="bg-white p-6 rounded-xl shadow-lg mx-auto w-fit">
                   {invitationUrl ? (
                     <QRCodeSVG value={invitationUrl} size={280} level="H" />
                   ) : (
                     <div className="w-[280px] h-[280px] flex items-center justify-center">
-                      <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                   )}
                 </div>
                 <div className="mt-6 text-center">
-                  <span className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+                  <span className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
                     <span className="w-2 h-2 bg-white rounded-full"></span>
-                    {connectionMessage || "Waiting for wallet connection..."}
+                    {connectionMessage || "Waiting for worker to connect..."}
                   </span>
                 </div>
               </div>
 
               {/* Instructions */}
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
-                <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-6">
+                <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Instructions for Candidate
+                  Instructions for Worker
                 </h3>
-                <ol className="space-y-2 text-sm text-blue-800">
+                <ol className="space-y-2 text-sm text-green-800">
                   <li className="flex items-start gap-2">
                     <span className="font-bold">1.</span>
                     <span>Open the ConfirmD wallet app on your phone</span>
@@ -481,10 +517,10 @@ export default function VerifyTrainingCertificationPage() {
           {(connectionStatus === "connected" || connectionStatus === "requesting-proof" || connectionStatus === "proof-received" || connectionStatus === "verifying") && (
             <div className="p-8 text-center">
               <div className="relative w-24 h-24 mx-auto mb-6">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full animate-ping opacity-20"></div>
-                <div className="relative w-24 h-24 bg-gradient-to-br from-purple-100 via-indigo-100 to-purple-100 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full animate-ping opacity-20"></div>
+                <div className="relative w-24 h-24 bg-gradient-to-br from-blue-100 via-indigo-100 to-blue-100 rounded-full flex items-center justify-center shadow-lg animate-pulse">
                   {connectionStatus === "verifying" ? (
-                    <svg className="w-12 h-12 text-purple-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-12 h-12 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                   ) : connectionStatus === "proof-received" ? (
@@ -492,26 +528,26 @@ export default function VerifyTrainingCertificationPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   ) : (
-                    <svg className="w-12 h-12 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   )}
                 </div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                {connectionStatus === "verifying" ? "Verifying Certification..." :
-                 connectionStatus === "proof-received" ? "Credential Received!" :
-                 connectionStatus === "requesting-proof" ? "Requesting Certification..." :
-                 "Connected!"}
+                {connectionStatus === "verifying" ? "Verifying Safety Certification..." :
+                 connectionStatus === "proof-received" ? "Certification Received!" :
+                 connectionStatus === "requesting-proof" ? "Requesting Safety Certification..." :
+                 "Worker Connected!"}
               </h3>
               <p className="text-lg text-gray-700 mb-6 font-medium max-w-lg mx-auto">
-                {connectionMessage || "Please approve the verification request in your wallet app..."}
+                {connectionMessage || "Worker is sharing their certification..."}
               </p>
 
               <div className="flex items-center justify-center gap-2 mb-6">
-                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce"></div>
-                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
               </div>
             </div>
           )}
@@ -528,7 +564,7 @@ export default function VerifyTrainingCertificationPage() {
               <p className="text-gray-600 mb-6">{errorMessage || connectionMessage || "An error occurred"}</p>
               <button
                 onClick={resetVerification}
-                className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
               >
                 Try Again
               </button>
@@ -545,10 +581,10 @@ export default function VerifyTrainingCertificationPage() {
                   </svg>
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  Certification Verified!
+                  Worker Cleared for Deployment ✓
                 </h2>
                 <p className="text-gray-600">
-                  The candidate's training certification has been cryptographically verified
+                  The worker's safety certification has been cryptographically verified and is valid
                 </p>
               </div>
 
@@ -579,7 +615,7 @@ export default function VerifyTrainingCertificationPage() {
                   </div>
                   <div className="bg-white rounded-lg p-4 border border-green-100">
                     <p className="text-xs text-gray-500 mb-1">Credential Number</p>
-                    <p className="font-bold text-purple-600">{certificationData.credentialNumber}</p>
+                    <p className="font-bold text-blue-600">{certificationData.credentialNumber}</p>
                   </div>
                   <div className="bg-white rounded-lg p-4 border border-green-100">
                     <p className="text-xs text-gray-500 mb-1">Course Code</p>
@@ -628,9 +664,9 @@ export default function VerifyTrainingCertificationPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={resetVerification}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
                 >
-                  Verify Another Candidate
+                  Verify Another Worker
                 </button>
                 <Link
                   href="/"
@@ -646,7 +682,14 @@ export default function VerifyTrainingCertificationPage() {
         {/* Footer Info */}
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>
-            This demo showcases employer-side verification of training certifications using verifiable credentials.
+            <strong>Atlantic Energy Nigeria</strong> uses DLT-based verifiable credentials to ensure
+            all offshore workers hold valid, NSITF-compliant safety certifications before deployment.
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            Demo: Workers can obtain certifications from{" "}
+            <Link href="/training/issue-certification" className="text-blue-500 hover:underline">
+              SafetyFirst Academy Portal
+            </Link>
           </p>
         </div>
       </div>
