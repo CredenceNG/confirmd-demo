@@ -159,12 +159,13 @@ export default function HospitalKioskPage() {
 
         // Generate visit number and redirect
         const visitNumber = generateVisitNumber();
-        const patientName = data.data.presentation?.requested_proof?.revealed_attrs?.othernames?.raw ||
-                          data.data.revealedAttributes?.othernames ||
-                          "Patient";
-        const patientSurname = data.data.presentation?.requested_proof?.revealed_attrs?.surname?.raw ||
-                             data.data.revealedAttributes?.surname ||
-                             "";
+
+        // Extract patient name from presentedAttributes (returned directly from verify API)
+        const presentedAttrs = data.data.presentedAttributes || {};
+        const patientName = presentedAttrs.othernames || "Patient";
+        const patientSurname = presentedAttrs.surname || "";
+
+        console.log('[Kiosk] Patient details:', { patientName, patientSurname, presentedAttrs });
 
         setTimeout(() => {
           router.push(`/health/kiosk/success?visitNumber=${visitNumber}&patientName=${encodeURIComponent(patientName + " " + patientSurname)}&sessionId=${sessionId}`);

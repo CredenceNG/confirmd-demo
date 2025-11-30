@@ -59,6 +59,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch proof details with presentation attributes after verification
+    let presentedAttributes: Record<string, any> = {};
+
     if (result.data && result.data.verified) {
       try {
         const { prisma } = await import("@/lib/prisma");
@@ -86,8 +88,6 @@ export async function POST(request: NextRequest) {
             : null,
         });
 
-        let attributes: any = {};
-
         if (proofDetails.success && proofDetails.data) {
           // The ConfirmD Platform API returns attributes as an array where EACH object
           // contains ONE attribute (plus schemaId/credDefId metadata).
@@ -98,16 +98,16 @@ export async function POST(request: NextRequest) {
               // Remove schemaId and credDefId metadata, keep only the actual attribute
               const { schemaId, credDefId, ...extractedAttribute } = credentialData;
               // Merge this attribute into the attributes object
-              Object.assign(attributes, extractedAttribute);
+              Object.assign(presentedAttributes, extractedAttribute);
             });
 
             logger.proofFlow("FETCH_ATTRIBUTES_RESULT", {
               proofId,
               success: true,
               hasData: true,
-              hasAttributes: Object.keys(attributes).length > 0,
-              attributeCount: Object.keys(attributes).length,
-              attributeNames: Object.keys(attributes),
+              hasAttributes: Object.keys(presentedAttributes).length > 0,
+              attributeCount: Object.keys(presentedAttributes).length,
+              attributeNames: Object.keys(presentedAttributes),
             });
           } else {
             logger.proofFlow("FETCH_ATTRIBUTES_RESULT", {
@@ -127,19 +127,19 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        if (attributes && Object.keys(attributes).length > 0) {
+        if (presentedAttributes && Object.keys(presentedAttributes).length > 0) {
           logger.attributes("EXTRACTED", {
             proofId,
-            attributeCount: Object.keys(attributes).length,
-            attributeNames: Object.keys(attributes),
-            sampleAttribute: Object.entries(attributes)[0],
+            attributeCount: Object.keys(presentedAttributes).length,
+            attributeNames: Object.keys(presentedAttributes),
+            sampleAttribute: Object.entries(presentedAttributes)[0],
           });
 
           // Update proof request with attributes
           await prisma.proofRequest.update({
             where: { proofId },
             data: {
-              presentedAttributes: JSON.stringify(attributes),
+              presentedAttributes: JSON.stringify(presentedAttributes),
               verified: true,
               status: "done",
               verifiedAt: new Date(),
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
 
           logger.proofFlow("DATABASE_UPDATED", {
             proofId,
-            attributeCount: Object.keys(attributes).length,
+            attributeCount: Object.keys(presentedAttributes).length,
             status: "done",
             verified: true,
           });
@@ -177,9 +177,17 @@ export async function POST(request: NextRequest) {
       proofId,
       verified: result.data?.verified,
       success: result.success,
+      hasAttributes: Object.keys(presentedAttributes).length > 0,
     });
 
-    return NextResponse.json(result);
+    // Include extracted attributes in response
+    return NextResponse.json({
+      ...result,
+      data: {
+        ...result.data,
+        presentedAttributes: Object.keys(presentedAttributes).length > 0 ? presentedAttributes : undefined,
+      },
+    });
   } catch (error: any) {
     logger.error("API: Error verifying proof", {
       error: error.message,
