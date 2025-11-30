@@ -1,0 +1,50 @@
+[
+  {
+    "name": "title",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "surname",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "othernames",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "certification_title",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "training_organization",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "course_code",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "completion_date",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "issue_date",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "expiry_date",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "grade",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "credential_number",
+    "credential": "Training Certification"
+  },
+  {
+    "name": "skills",
+    "credential": "Training Certification"
+  }
+]

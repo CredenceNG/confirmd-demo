@@ -61,6 +61,10 @@ export function getCredentialMappings(): Record<string, CredentialMapping> {
       schemaId: process.env.HEALTH_CARD_SCHEMA_ID || "",
       credDefId: process.env.HEALTH_CARD_CRED_DEF_ID,
     },
+    "Training Certification": {
+      schemaId: process.env.TRAINING_CERTIFICATION_SCHEMA_ID || "",
+      credDefId: process.env.TRAINING_CERTIFICATION_CRED_DEF_ID,
+    },
   };
 }
 

@@ -80,15 +80,27 @@ export async function POST(request: NextRequest) {
 
     // Get organization ID and credential definition ID
     const orgId = process.env.CONFIRMD_ORG_ID;
-    const credDefId = process.env.ISSUE_CRED_DEF_ID;
+    const credDefId = process.env.TRAINING_CERTIFICATION_CRED_DEF_ID;
 
-    if (!orgId || !credDefId) {
-      logger.error("[Training Certification API] Missing configuration");
+    if (!orgId) {
+      logger.error("[Training Certification API] Missing CONFIRMD_ORG_ID");
       return NextResponse.json(
         {
           success: false,
           error: "configuration_error",
-          message: "Organization or credential definition not configured",
+          message: "Organization ID not configured",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!credDefId) {
+      logger.error("[Training Certification API] Missing TRAINING_CERTIFICATION_CRED_DEF_ID");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "configuration_error",
+          message: "Training Certification credential definition not configured. Please set TRAINING_CERTIFICATION_CRED_DEF_ID in your .env file.",
         },
         { status: 500 }
       );

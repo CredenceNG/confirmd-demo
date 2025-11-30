@@ -2,12 +2,14 @@
  * Training Certifications - Verify Certification API
  *
  * Verifies training certification credentials for employment verification
+ * Uses the unified proof-config system for consistent attribute handling.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAccessToken } from "@/lib/api/confirmd-auth";
 import { API_CONFIG } from "@/lib/api/constants";
 import { logger } from "@/lib/api/logger";
+import { buildProofAttributeRequests } from "@/lib/proof-config";
 import axios from "axios";
 
 /**
@@ -21,15 +23,14 @@ export async function POST(request: NextRequest) {
 
     // Get organization ID
     const orgId = process.env.CONFIRMD_ORG_ID;
-    const credDefId = process.env.ISSUE_CRED_DEF_ID;
 
-    if (!orgId || !credDefId) {
-      logger.error("[Training Verify API] Missing configuration");
+    if (!orgId) {
+      logger.error("[Training Verify API] Missing CONFIRMD_ORG_ID");
       return NextResponse.json(
         {
           success: false,
           error: "configuration_error",
-          message: "Organization or credential definition not configured",
+          message: "Organization ID not configured",
         },
         { status: 500 }
       );
@@ -41,109 +42,34 @@ export async function POST(request: NextRequest) {
     if (action === "request_proof") {
       logger.info("[Training Verify API] Requesting proof from candidate");
 
+      // Build proof attribute requests from config file
+      const attributeRequests = buildProofAttributeRequests("training-certification-proof-attributes.json");
+
+      logger.info("[Training Verify API] Loaded attributes from config:", {
+        attributeCount: attributeRequests.length,
+        attributeNames: attributeRequests.map(a => a.attributeName),
+      });
+
+      // Convert to Indy proof format
+      const requestedAttributes: Record<string, any> = {};
+      attributeRequests.forEach((attr) => {
+        const restrictions: any[] = [];
+        if (attr.credDefId) {
+          restrictions.push({ cred_def_id: attr.credDefId });
+        }
+
+        requestedAttributes[attr.attributeName] = {
+          name: attr.attributeName,
+          restrictions: restrictions.length > 0 ? restrictions : undefined,
+        };
+      });
+
       // Request proof presentation
       const payload = {
         comment: "Please share your training certification for employment verification",
         proofFormats: {
           indy: {
-            requested_attributes: {
-              title: {
-                name: "title",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              surname: {
-                name: "surname",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              othernames: {
-                name: "othernames",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              certification_title: {
-                name: "certification_title",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              training_organization: {
-                name: "training_organization",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              course_code: {
-                name: "course_code",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              completion_date: {
-                name: "completion_date",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              issue_date: {
-                name: "issue_date",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              expiry_date: {
-                name: "expiry_date",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              grade: {
-                name: "grade",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              credential_number: {
-                name: "credential_number",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-              skills: {
-                name: "skills",
-                restrictions: [
-                  {
-                    cred_def_id: credDefId,
-                  },
-                ],
-              },
-            },
+            requested_attributes: requestedAttributes,
             requested_predicates: {},
           },
         },

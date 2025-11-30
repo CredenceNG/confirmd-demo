@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -12,6 +12,7 @@ function IssuingCertificationContent() {
   const [issueStatus, setIssueStatus] = useState<"idle" | "issuing" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [credentialDetails, setCredentialDetails] = useState<any>(null);
+  const hasIssuedRef = useRef(false); // Prevent double issuance in React Strict Mode
 
   // Parse data from URL parameter
   const dataParam = searchParams.get("data");
@@ -34,7 +35,9 @@ function IssuingCertificationContent() {
   const fullName = `${formData.title} ${formData.othernames} ${formData.surname}`;
 
   useEffect(() => {
-    // Auto-start issuing when page loads
+    // Auto-start issuing when page loads (only once, guard against React Strict Mode double-mount)
+    if (hasIssuedRef.current) return;
+    hasIssuedRef.current = true;
     issueCertification();
   }, []);
 
