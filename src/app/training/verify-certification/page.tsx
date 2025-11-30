@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useConnectionWebSocket } from "@/hooks/useConnectionWebSocket";
 
-type VerificationStatus =
-  | "idle"
-  | "generating-qr"
-  | "waiting-scan"
+type ConnectionStatus =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "requesting-proof"
+  | "proof-received"
   | "verifying"
   | "verified"
   | "error";
@@ -30,151 +32,234 @@ interface VerifiedCertificationData {
 }
 
 export default function VerifyTrainingCertificationPage() {
-  const router = useRouter();
-  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("idle");
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
-  const [proofRecordId, setProofRecordId] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
+  const [sessionId, setSessionId] = useState<string>("");
+  const [connectionId, setConnectionId] = useState<string>("");
+  const [invitationUrl, setInvitationUrl] = useState<string>("");
+  const [isLoadingInvitation, setIsLoadingInvitation] = useState(false);
+  const [connectionMessage, setConnectionMessage] = useState<string>("");
+  const [proofId, setProofId] = useState<string>("");
+  const [isVerifying, setIsVerifying] = useState(false);
   const [certificationData, setCertificationData] = useState<VerifiedCertificationData | null>(null);
-  const [pollIntervalId, setPollIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  // Cleanup polling on unmount
+  // Use WebSocket for real-time status updates
+  const { status: wsStatus, connectionData } = useConnectionWebSocket(
+    sessionId || null
+  );
+
+  // Handle WebSocket status updates
   useEffect(() => {
-    return () => {
-      if (pollIntervalId) {
-        clearInterval(pollIntervalId);
-      }
-    };
-  }, [pollIntervalId]);
+    if (!wsStatus) return;
 
-  // Request proof from candidate
-  const requestProof = async () => {
-    setVerificationStatus("generating-qr");
+    console.log('[Training Verify] WebSocket status update:', wsStatus, connectionData);
+
+    const isProofEvent = connectionData?.eventType === 'proof';
+
+    if (isProofEvent) {
+      if (wsStatus === "request-sent") {
+        setConnectionStatus("requesting-proof");
+        setConnectionMessage("Verification request sent! Please approve in your wallet...");
+      }
+    } else {
+      if (wsStatus === "active" || wsStatus === "completed") {
+        if (connectionStatus === "connecting") {
+          setConnectionStatus("connected");
+          setConnectionMessage(`Connection established! Connected to ${connectionData?.theirLabel || 'wallet'}`);
+
+          if (connectionData?.connectionId) {
+            setConnectionId(connectionData.connectionId);
+            // Automatically send proof request for training certification
+            sendProofRequest(sessionId, connectionData.connectionId);
+          }
+        }
+      } else if (wsStatus === "response") {
+        setConnectionMessage(`Connecting to ${connectionData?.theirLabel || 'wallet'}...`);
+      } else if (wsStatus === "abandoned" || wsStatus === "error") {
+        setConnectionMessage("Connection failed or expired. Please try again.");
+        setConnectionStatus("error");
+        setErrorMessage("Connection failed or expired. Please try again.");
+      }
+    }
+  }, [wsStatus, connectionData, sessionId, connectionStatus]);
+
+  // Handle proof status updates
+  useEffect(() => {
+    if (connectionData?.eventType === "proof") {
+      console.log('[Training Verify] Proof status update:', connectionData);
+
+      if (connectionData.proofId && !proofId) {
+        setProofId(connectionData.proofId);
+      }
+
+      if (connectionData.status === "presentation-received" && !isVerifying) {
+        setConnectionStatus("proof-received");
+        setConnectionMessage("Credentials received! Verifying...");
+
+        const proofIdToVerify = connectionData.proofId;
+        if (proofIdToVerify) {
+          setIsVerifying(true);
+          verifyCertification(proofIdToVerify);
+        }
+      } else if (connectionData.status === "done") {
+        // Proof verified on platform - if not already verifying, verify now
+        if (!isVerifying) {
+          const proofIdToVerify = connectionData.proofId || proofId;
+          if (proofIdToVerify) {
+            setIsVerifying(true);
+            verifyCertification(proofIdToVerify);
+          }
+        }
+      } else if (connectionData.status === "abandoned") {
+        setConnectionMessage("Verification request was declined. Please try again.");
+        setConnectionStatus("connected");
+      }
+    }
+  }, [connectionData, proofId, isVerifying]);
+
+  // Create connection session
+  const initiateConnection = async () => {
+    setIsLoadingInvitation(true);
+    setConnectionMessage("Creating connection session...");
     setErrorMessage("");
 
     try {
-      console.log("[Training Verify] Requesting proof from API...");
-      const response = await fetch("/api/training/verify-certification", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "request_proof",
-        }),
+      console.log('[Training Verify] Creating session...');
+      const response = await fetch('/api/training/create-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestType: 'training-verification' }),
       });
 
       const data = await response.json();
-      console.log("[Training Verify] Proof request response:", data);
+      console.log('[Training Verify] Session response:', data);
 
-      if (!response.ok || !data.success) {
-        // Handle various error formats - error could be string, object, or undefined
-        let errorDescription = "Failed to create proof request";
-        if (data.message) {
-          errorDescription = data.message;
-        } else if (data.error && typeof data.error === "string") {
-          errorDescription = data.error;
-        } else if (data.error?.message) {
-          errorDescription = data.error.message;
-        } else if (data.details) {
-          errorDescription = typeof data.details === "string" ? data.details : JSON.stringify(data.details);
-        }
-        console.error("[Training Verify] Failed to request proof:", data);
+      if (data.success && data.data) {
+        setSessionId(data.data.sessionId);
+        setInvitationUrl(data.data.invitationUrl);
+        setConnectionStatus("connecting");
+        setConnectionMessage("Waiting for wallet connection...");
+      } else {
+        const errorType = data.error?.error || data.error || 'unknown_error';
+        const errorDescription = data.error?.error_description || data.message || 'Failed to create session';
+        console.error('[Training Verify] Failed to create session:', { errorType, errorDescription, fullError: data.error });
+        setConnectionMessage(`Failed to create connection: ${errorDescription}`);
         setErrorMessage(errorDescription);
-        setVerificationStatus("error");
-        return;
+        setConnectionStatus("error");
       }
-
-      const qrCode = data.data?.qrCode || "";
-      const recordId = data.data?.proofRecordId || "";
-
-      if (!qrCode) {
-        setErrorMessage("No QR code received from the server. Please try again.");
-        setVerificationStatus("error");
-        return;
-      }
-
-      setQrCodeUrl(qrCode);
-      setProofRecordId(recordId);
-      setVerificationStatus("waiting-scan");
-
-      console.log("[Training Verify] QR code generated, starting polling...", { recordId });
-
-      // Start polling for proof status
-      const intervalId = setInterval(() => {
-        checkProofStatus(recordId);
-      }, 3000);
-      setPollIntervalId(intervalId);
-
     } catch (error: any) {
-      console.error("[Training Verify] Network error:", error);
-      setErrorMessage(`Network error: ${error.message || "Unable to connect to the server"}`);
-      setVerificationStatus("error");
+      console.error('[Training Verify] Error creating session:', error);
+      setConnectionMessage("Connection error. Please try again.");
+      setErrorMessage(error.message || "Network error. Please try again.");
+      setConnectionStatus("error");
+    } finally {
+      setIsLoadingInvitation(false);
     }
   };
 
-  // Check proof verification status
-  const checkProofStatus = async (recordId: string) => {
+  // Send proof request for training certification
+  const sendProofRequest = async (sessionId: string, connectionId: string) => {
+    console.log('[Training Verify] Sending proof request', { sessionId, connectionId });
+    setConnectionStatus("requesting-proof");
+    setConnectionMessage("Requesting training certification...");
+
     try {
-      console.log("[Training Verify] Checking proof status...", { recordId });
-      const response = await fetch("/api/training/verify-certification", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "check_status",
-          proofRecordId: recordId,
-        }),
+      const response = await fetch('/api/training/request-proof', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, connectionId }),
       });
 
       const data = await response.json();
-      console.log("[Training Verify] Status response:", data);
+      console.log('[Training Verify] Proof request response:', data);
 
-      if (response.ok && data.success && data.data?.verified) {
-        // Stop polling
-        if (pollIntervalId) {
-          clearInterval(pollIntervalId);
-          setPollIntervalId(null);
+      if (data.success) {
+        console.log('[Training Verify] Proof request sent successfully', data.data);
+        if (data.data.proofId) {
+          setProofId(data.data.proofId);
         }
+        setConnectionMessage("Verification request sent! Please share your Training Certification from your wallet...");
+      } else {
+        const errorType = data.error?.error || data.error || 'unknown_error';
+        const errorDescription = data.error?.error_description || data.message || 'Failed to send proof request';
+        console.error('[Training Verify] Failed to send proof request:', { errorType, errorDescription });
+        setConnectionMessage(`Failed to request credential: ${errorDescription}`);
+        setConnectionStatus("connected");
+      }
+    } catch (error: any) {
+      console.error('[Training Verify] Error sending proof request:', error);
+      setConnectionMessage("Error requesting credential. Please try again.");
+      setConnectionStatus("connected");
+    }
+  };
 
-        // Extract certification data
-        const cert = data.data.certification;
+  // Verify certification credential
+  const verifyCertification = async (proofIdToVerify: string) => {
+    console.log('[Training Verify] Verifying certification', { proofId: proofIdToVerify });
+    setConnectionStatus("verifying");
+    setConnectionMessage("Verifying credentials...");
+
+    try {
+      const verifyResponse = await fetch('/api/proofs/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proofId: proofIdToVerify }),
+      });
+
+      const verifyData = await verifyResponse.json();
+      console.log('[Training Verify] Verify response:', verifyData);
+
+      if (verifyData.success && verifyData.data?.isVerified === true && verifyData.data?.state === 'done') {
+        console.log('[Training Verify] Proof verified successfully');
+
+        // Extract presented attributes from the verification response
+        const attrs = verifyData.data.presentedAttributes || {};
+
         setCertificationData({
-          fullName: cert.fullName || `${cert.othernames || ""} ${cert.surname || ""}`.trim(),
-          surname: cert.surname || "",
-          othernames: cert.othernames || "",
-          nationalIdNumber: cert.nationalIdNumber || "",
-          certificationTitle: cert.certificationTitle || "",
-          trainingOrganization: cert.trainingOrganization || "",
-          courseCode: cert.courseCode || "",
-          completionDate: cert.completionDate || "",
-          issueDate: cert.issueDate || "",
-          expiryDate: cert.expiryDate || "",
-          grade: cert.grade || "",
-          credentialNumber: cert.credentialNumber || "",
-          skills: cert.skills || "",
+          fullName: `${attrs.othernames || ""} ${attrs.surname || ""}`.trim(),
+          surname: attrs.surname || "",
+          othernames: attrs.othernames || "",
+          nationalIdNumber: attrs.national_id_number || "",
+          certificationTitle: attrs.certification_title || "",
+          trainingOrganization: attrs.training_organization || "",
+          courseCode: attrs.course_code || "",
+          completionDate: attrs.completion_date || "",
+          issueDate: attrs.issue_date || "",
+          expiryDate: attrs.expiry_date || "",
+          grade: attrs.grade || "",
+          credentialNumber: attrs.credential_number || "",
+          skills: attrs.skills || "",
         });
 
-        setVerificationStatus("verified");
-        console.log("[Training Verify] Proof verified successfully!");
+        setConnectionStatus("verified");
+        setConnectionMessage("Credentials verified successfully!");
+      } else {
+        const errorMsg = verifyData.error?.error_description ||
+          `Verification pending (state: ${verifyData.data?.state})`;
+        console.error('[Training Verify] Verification failed:', errorMsg);
+        setConnectionMessage(`Verification failed: ${errorMsg}`);
+        setConnectionStatus("connected");
+        setIsVerifying(false);
       }
-    } catch (error) {
-      console.error("[Training Verify] Error checking status:", error);
+    } catch (error: any) {
+      console.error('[Training Verify] Error verifying certification:', error);
+      setConnectionMessage("Error verifying credentials. Please try again.");
+      setConnectionStatus("connected");
+      setIsVerifying(false);
     }
   };
 
   // Reset to initial state
   const resetVerification = () => {
-    if (pollIntervalId) {
-      clearInterval(pollIntervalId);
-      setPollIntervalId(null);
-    }
-    setVerificationStatus("idle");
-    setQrCodeUrl("");
-    setProofRecordId("");
-    setErrorMessage("");
+    setConnectionStatus("disconnected");
+    setSessionId("");
+    setConnectionId("");
+    setInvitationUrl("");
+    setConnectionMessage("");
+    setProofId("");
+    setIsVerifying(false);
     setCertificationData(null);
+    setErrorMessage("");
   };
 
   return (
@@ -221,8 +306,8 @@ export default function VerifyTrainingCertificationPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          {/* Idle State - Start Verification */}
-          {verificationStatus === "idle" && (
+          {/* Disconnected State - Start Verification */}
+          {connectionStatus === "disconnected" && (
             <div className="p-8">
               <div className="text-center mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -244,19 +329,19 @@ export default function VerifyTrainingCertificationPage() {
                 <ol className="space-y-3 text-sm text-purple-800">
                   <li className="flex items-start gap-3">
                     <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">1</span>
-                    <span>Click "Start Verification" to generate a proof request QR code</span>
+                    <span>Click "Start Verification" to generate a connection QR code</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">2</span>
-                    <span>Candidate scans the QR code with their ConfirmD wallet app</span>
+                    <span>Candidate scans the QR code with their ConfirmD wallet app to connect</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">3</span>
-                    <span>Candidate approves sharing their training certification credential</span>
+                    <span>After connection, a proof request is automatically sent to their wallet</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">4</span>
-                    <span>Credential is cryptographically verified and displayed to you</span>
+                    <span>Candidate approves sharing and credentials are cryptographically verified</span>
                   </li>
                 </ol>
               </div>
@@ -281,38 +366,37 @@ export default function VerifyTrainingCertificationPage() {
               </div>
 
               <button
-                onClick={requestProof}
-                className="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-lg rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
+                onClick={initiateConnection}
+                disabled={isLoadingInvitation}
+                className="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-lg rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center justify-center gap-3">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                  </svg>
-                  Start Verification
+                  {isLoadingInvitation ? (
+                    <>
+                      <svg className="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Setting up...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                      </svg>
+                      Start Verification
+                    </>
+                  )}
                 </div>
               </button>
             </div>
           )}
 
-          {/* Generating QR State */}
-          {verificationStatus === "generating-qr" && (
-            <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-                <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Generating QR Code...</h2>
-              <p className="text-gray-600">Creating a secure proof request</p>
-            </div>
-          )}
-
-          {/* Waiting for Scan State */}
-          {verificationStatus === "waiting-scan" && (
+          {/* Connecting State - Show QR Code */}
+          {connectionStatus === "connecting" && (
             <div className="p-8">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Scan QR Code with Wallet
+                  Scan QR Code to Connect
                 </h2>
                 <p className="text-gray-600">
                   Ask the candidate to scan this QR code with their ConfirmD wallet
@@ -322,12 +406,18 @@ export default function VerifyTrainingCertificationPage() {
               {/* QR Code */}
               <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-8 mb-6 border-2 border-purple-200">
                 <div className="bg-white p-6 rounded-xl shadow-lg mx-auto w-fit">
-                  <QRCodeSVG value={qrCodeUrl} size={280} level="H" />
+                  {invitationUrl ? (
+                    <QRCodeSVG value={invitationUrl} size={280} level="H" />
+                  ) : (
+                    <div className="w-[280px] h-[280px] flex items-center justify-center">
+                      <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-6 text-center">
                   <span className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
                     <span className="w-2 h-2 bg-white rounded-full"></span>
-                    Waiting for credential presentation...
+                    {connectionMessage || "Waiting for wallet connection..."}
                   </span>
                 </div>
               </div>
@@ -351,7 +441,7 @@ export default function VerifyTrainingCertificationPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold">3.</span>
-                    <span>Review the credential request and approve sharing</span>
+                    <span>Accept the connection request</span>
                   </li>
                 </ol>
               </div>
@@ -365,8 +455,47 @@ export default function VerifyTrainingCertificationPage() {
             </div>
           )}
 
+          {/* Connected/Requesting/Received/Verifying States */}
+          {(connectionStatus === "connected" || connectionStatus === "requesting-proof" || connectionStatus === "proof-received" || connectionStatus === "verifying") && (
+            <div className="p-8 text-center">
+              <div className="relative w-24 h-24 mx-auto mb-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full animate-ping opacity-20"></div>
+                <div className="relative w-24 h-24 bg-gradient-to-br from-purple-100 via-indigo-100 to-purple-100 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                  {connectionStatus === "verifying" ? (
+                    <svg className="w-12 h-12 text-purple-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  ) : connectionStatus === "proof-received" ? (
+                    <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-12 h-12 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                {connectionStatus === "verifying" ? "Verifying Certification..." :
+                 connectionStatus === "proof-received" ? "Credential Received!" :
+                 connectionStatus === "requesting-proof" ? "Requesting Certification..." :
+                 "Connected!"}
+              </h3>
+              <p className="text-lg text-gray-700 mb-6 font-medium max-w-lg mx-auto">
+                {connectionMessage || "Please approve the verification request in your wallet app..."}
+              </p>
+
+              <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+              </div>
+            </div>
+          )}
+
           {/* Error State */}
-          {verificationStatus === "error" && (
+          {connectionStatus === "error" && (
             <div className="p-8 text-center">
               <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -374,7 +503,7 @@ export default function VerifyTrainingCertificationPage() {
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Verification Failed</h2>
-              <p className="text-gray-600 mb-6">{errorMessage}</p>
+              <p className="text-gray-600 mb-6">{errorMessage || connectionMessage || "An error occurred"}</p>
               <button
                 onClick={resetVerification}
                 className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
@@ -385,7 +514,7 @@ export default function VerifyTrainingCertificationPage() {
           )}
 
           {/* Verified State */}
-          {verificationStatus === "verified" && certificationData && (
+          {connectionStatus === "verified" && certificationData && (
             <div className="p-8">
               <div className="text-center mb-8">
                 <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
