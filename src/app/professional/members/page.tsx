@@ -16,13 +16,21 @@ type ConnectionStatus =
   | "verified";
 
 interface MembershipData {
-  fullName: string;
-  membershipNumber: string;
-  designation: string; // Member, Fellow, Emeritus, etc.
-  organization: string;
-  memberSince: string;
-  expiryDate: string;
-  goodStanding: string;
+  // From Statement of Results
+  surname: string;
+  othernames: string;
+  matricNumber: string;
+  programme: string;
+  classOfDegree: string;
+  yearEnd: string;
+  awardedDegree: string;
+  // From NYSC Certificate
+  fullname: string;
+  callUpNumber: string;
+  startDate: string;
+  endDate: string;
+  certificateNumber: string;
+  issuedDate: string;
 }
 
 export default function ProfessionalMembersPage() {
@@ -52,26 +60,25 @@ export default function ProfessionalMembersPage() {
 
   const [selectedTicket, setSelectedTicket] = useState<"Early Bird" | "Regular" | "Late">("Early Bird");
 
-  // Discount tiers based on designation
-  const getDiscount = (designation: string): { percentage: number; label: string } => {
-    const designationUpper = designation.toUpperCase();
-    if (designationUpper.includes("EMERITUS")) {
-      return { percentage: 50, label: "Emeritus Discount" };
-    } else if (designationUpper.includes("FELLOW")) {
-      return { percentage: 30, label: "Fellow Discount" };
-    } else if (designationUpper.includes("SENIOR")) {
-      return { percentage: 20, label: "Senior Member Discount" };
-    } else if (designationUpper.includes("MEMBER")) {
-      return { percentage: 15, label: "Member Discount" };
+  // Discount tiers based on class of degree (from Statement of Results)
+  const getDiscount = (classOfDegree: string): { percentage: number; label: string } => {
+    if (!classOfDegree) return { percentage: 0, label: "No Discount" };
+    const degreeUpper = classOfDegree.toUpperCase();
+    if (degreeUpper.includes("FIRST CLASS")) {
+      return { percentage: 30, label: "First Class Graduate Discount" };
+    } else if (degreeUpper.includes("SECOND CLASS UPPER") || degreeUpper.includes("2:1")) {
+      return { percentage: 20, label: "Second Class Upper Discount" };
+    } else if (degreeUpper.includes("SECOND CLASS") || degreeUpper.includes("2:2")) {
+      return { percentage: 15, label: "Second Class Discount" };
     }
-    return { percentage: 0, label: "No Discount" };
+    return { percentage: 10, label: "Graduate Discount" };
   };
 
   const calculatePrice = () => {
     const basePrice = basePricing[selectedTicket];
     if (!membershipData) return basePrice;
 
-    const discount = getDiscount(membershipData.designation);
+    const discount = getDiscount(membershipData.classOfDegree);
     const discountAmount = (basePrice * discount.percentage) / 100;
     return basePrice - discountAmount;
   };
@@ -309,7 +316,7 @@ export default function ProfessionalMembersPage() {
         if (membershipData.success && membershipData.data?.verified) {
           console.log('[Professional Members] Membership verified successfully', membershipData.data);
           setMembershipData(membershipData.data.membership);
-          setRegistrationEmail(membershipData.data.membership.organization || "");
+          // No organization field in new data structure - leave email empty for user to fill
           setConnectionStatus("verified");
           setConnectionMessage("✅ Credentials verified successfully!");
         } else {
@@ -794,24 +801,32 @@ export default function ProfessionalMembersPage() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                         </svg>
-                        Verified Membership Information
+                        Verified Credentials
                       </h4>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="bg-white rounded-lg p-3 border border-indigo-200">
                           <p className="text-xs text-indigo-700 mb-1">Full Name</p>
-                          <p className="font-bold text-gray-900">{membershipData.fullName}</p>
+                          <p className="font-bold text-gray-900">{membershipData.fullname || `${membershipData.surname} ${membershipData.othernames}`}</p>
                         </div>
                         <div className="bg-white rounded-lg p-3 border border-indigo-200">
-                          <p className="text-xs text-indigo-700 mb-1">Membership Number</p>
-                          <p className="font-bold text-gray-900">{membershipData.membershipNumber}</p>
+                          <p className="text-xs text-indigo-700 mb-1">Matric Number</p>
+                          <p className="font-bold text-gray-900">{membershipData.matricNumber}</p>
                         </div>
                         <div className="bg-white rounded-lg p-3 border border-indigo-200">
-                          <p className="text-xs text-indigo-700 mb-1">Designation</p>
-                          <p className="font-bold text-gray-900 text-lg">{membershipData.designation}</p>
+                          <p className="text-xs text-indigo-700 mb-1">Class of Degree</p>
+                          <p className="font-bold text-gray-900 text-lg">{membershipData.classOfDegree}</p>
                         </div>
                         <div className="bg-white rounded-lg p-3 border border-indigo-200">
-                          <p className="text-xs text-indigo-700 mb-1">Organization</p>
-                          <p className="font-bold text-gray-900">{membershipData.organization}</p>
+                          <p className="text-xs text-indigo-700 mb-1">Programme</p>
+                          <p className="font-bold text-gray-900">{membershipData.programme}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-indigo-200">
+                          <p className="text-xs text-indigo-700 mb-1">NYSC Certificate Number</p>
+                          <p className="font-bold text-gray-900">{membershipData.certificateNumber}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-indigo-200">
+                          <p className="text-xs text-indigo-700 mb-1">Year of Graduation</p>
+                          <p className="font-bold text-gray-900">{membershipData.yearEnd}</p>
                         </div>
                       </div>
                     </div>
@@ -855,10 +870,10 @@ export default function ProfessionalMembersPage() {
                           </div>
                           <div className="flex justify-between items-center text-green-600">
                             <span className="font-semibold">
-                              {getDiscount(membershipData.designation).label} ({getDiscount(membershipData.designation).percentage}%)
+                              {getDiscount(membershipData.classOfDegree).label} ({getDiscount(membershipData.classOfDegree).percentage}%)
                             </span>
                             <span className="font-semibold">
-                              -{formatCurrency((basePricing[selectedTicket] * getDiscount(membershipData.designation).percentage) / 100)}
+                              -{formatCurrency((basePricing[selectedTicket] * getDiscount(membershipData.classOfDegree).percentage) / 100)}
                             </span>
                           </div>
                           <div className="border-t-2 border-green-300 pt-3 flex justify-between items-center">
@@ -869,7 +884,7 @@ export default function ProfessionalMembersPage() {
                           </div>
                           <div className="bg-white rounded-lg p-3 border border-green-300">
                             <p className="text-sm text-green-800 text-center">
-                              <strong>You save {formatCurrency(basePricing[selectedTicket] - calculatePrice())}</strong> with your {membershipData.designation} membership!
+                              <strong>You save {formatCurrency(basePricing[selectedTicket] - calculatePrice())}</strong> as a {membershipData.classOfDegree} graduate!
                             </p>
                           </div>
                         </div>
@@ -888,7 +903,7 @@ export default function ProfessionalMembersPage() {
                           </label>
                           <input
                             type="text"
-                            value={membershipData.fullName}
+                            value={membershipData.fullname || `${membershipData.surname} ${membershipData.othernames}`}
                             disabled
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-semibold"
                           />
@@ -924,14 +939,14 @@ export default function ProfessionalMembersPage() {
                           />
                         </div>
 
-                        {/* Organization/Institution (Read-only from credential) */}
+                        {/* Programme (Read-only from credential) */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Organization
+                            Programme
                           </label>
                           <input
                             type="text"
-                            value={membershipData.organization}
+                            value={membershipData.programme}
                             disabled
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-semibold"
                           />
@@ -977,18 +992,19 @@ export default function ProfessionalMembersPage() {
                             return;
                           }
 
-                          const discount = getDiscount(membershipData.designation);
+                          const discount = getDiscount(membershipData.classOfDegree);
                           const basePrice = basePricing[selectedTicket];
                           const finalPrice = calculatePrice();
                           const discountAmount = basePrice - finalPrice;
 
                           const params = new URLSearchParams({
-                            memberName: membershipData.fullName,
+                            memberName: membershipData.fullname || `${membershipData.surname} ${membershipData.othernames}`,
                             email: registrationEmail,
                             phone: phoneNumber,
-                            registrationNumber: membershipData.membershipNumber,
-                            designation: membershipData.designation,
-                            organization: membershipData.organization,
+                            matricNumber: membershipData.matricNumber,
+                            classOfDegree: membershipData.classOfDegree,
+                            programme: membershipData.programme,
+                            certificateNumber: membershipData.certificateNumber,
                             ticketType: selectedTicket,
                             basePrice: basePrice.toString(),
                             discount: discountAmount.toString(),
