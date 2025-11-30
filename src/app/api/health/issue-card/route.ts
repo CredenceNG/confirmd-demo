@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
             },
             {
               value: issuedDate,
-              name: "issued_date",
+              name: "issuing_date",
               isRequired: true,
             },
             {

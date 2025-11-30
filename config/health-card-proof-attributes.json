@@ -42,5 +42,13 @@
   {
     "name": "issuing_hospital",
     "credential": "Health Card"
+  },
+  {
+    "name": "issuing_date",
+    "credential": "Health Card"
+  },
+  {
+    "name": "expiry_date",
+    "credential": "Health Card"
   }
 ]
