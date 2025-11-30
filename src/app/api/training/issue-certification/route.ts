@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
             },
             {
               value: issueDate,
-              name: "issued_date",
+              name: "tissued_date",
               isRequired: true,
             },
             {

@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
           trainingOrganization: revealedAttrs.training_organization?.raw || "",
           courseCode: revealedAttrs.course_code?.raw || "",
           completionDate: revealedAttrs.completion_date?.raw || "",
-          issueDate: revealedAttrs.issued_date?.raw || "",
+          issueDate: revealedAttrs.tissued_date?.raw || "",
           expiryDate: revealedAttrs.expiry_date?.raw || "",
           grade: revealedAttrs.grade?.raw || "",
           credentialNumber: revealedAttrs.credential_number?.raw || "",
