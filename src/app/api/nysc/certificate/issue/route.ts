@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
           attributes: [
             {
               value: ensureValue(fullName),
-              name: "full_name",
+              name: "fullname",
               isRequired: true,
             },
             {
