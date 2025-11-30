@@ -91,10 +91,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch the proof presentation details from the API
-    const apiUrl = `${API_CONFIG.BASE_URL}/orgs/${orgId}/proofs/${proofId}`;
+    // Fetch the verified proof details with attributes from the API
+    // NOTE: Use /verified-proofs endpoint (not /proofs) to get the revealed attributes
+    const apiUrl = `${API_CONFIG.BASE_URL}/orgs/${orgId}/verified-proofs/${proofId}`;
 
-    logger.info("Professional Conference: Fetching proof details", {
+    logger.info("Professional Conference: Fetching verified proof details", {
       proofId,
       apiUrl,
     });
@@ -107,43 +108,26 @@ export async function POST(request: NextRequest) {
       timeout: 30000,
     });
 
-    logger.info("Professional Conference: Proof details retrieved", {
-      status: response.data.status,
-      state: response.data.state,
-      hasPresentation: !!response.data.presentation,
-      hasRequestedProof: !!response.data.presentation?.requested_proof,
-    });
-
     // Log raw response structure for debugging
-    logger.info("Professional Conference: RAW PROOF RESPONSE", {
+    logger.info("Professional Conference: RAW VERIFIED PROOF RESPONSE", {
       proofId,
-      state: response.data.state,
-      presentationKeys: response.data.presentation ? Object.keys(response.data.presentation) : [],
-      requestedProofKeys: response.data.presentation?.requested_proof ? Object.keys(response.data.presentation.requested_proof) : [],
+      statusCode: response.data.statusCode,
+      message: response.data.message,
+      dataType: typeof response.data.data,
+      isArray: Array.isArray(response.data.data),
+      dataLength: Array.isArray(response.data.data) ? response.data.data.length : 0,
       rawResponse: JSON.stringify(response.data).substring(0, 2000), // First 2000 chars
     });
 
-    // Check if proof is verified
-    if (response.data.state !== "done" && response.data.state !== "presentation-received") {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            error: "proof_not_ready",
-            error_description: `Proof is in state: ${response.data.state}`,
-          },
-        },
-        { status: 400 }
-      );
-    }
+    // The /verified-proofs endpoint returns attributes as an array
+    // Each object contains one attribute + schemaId/credDefId metadata
+    const proofData = response.data.data;
 
-    // Extract the revealed attributes from the proof
-    const presentation = response.data.presentation;
-
-    if (!presentation || !presentation.requested_proof || !presentation.requested_proof.revealed_attrs) {
-      logger.error("Professional Conference: No revealed attributes in proof", {
-        hasPresentation: !!presentation,
-        hasRequestedProof: !!presentation?.requested_proof,
+    if (!proofData || !Array.isArray(proofData) || proofData.length === 0) {
+      logger.error("Professional Conference: No attributes in verified proof", {
+        hasData: !!proofData,
+        isArray: Array.isArray(proofData),
+        dataLength: Array.isArray(proofData) ? proofData.length : 0,
       });
       return NextResponse.json(
         {
@@ -157,46 +141,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract membership data from revealed attributes
-    const revealedAttrs = presentation.requested_proof.revealed_attrs;
+    // Convert array of single-attribute objects into a flat attributes object
+    const attributes: Record<string, string> = {};
+    proofData.forEach((item: any) => {
+      // Remove schemaId and credDefId, keep only the attribute
+      const { schemaId, credDefId, ...attr } = item;
+      Object.assign(attributes, attr);
+    });
 
-    // Log revealed attributes for debugging
-    logger.info("Professional Conference: REVEALED ATTRIBUTES", {
+    // Log extracted attributes
+    logger.info("Professional Conference: EXTRACTED ATTRIBUTES", {
       proofId,
-      revealedAttrKeys: Object.keys(revealedAttrs),
-      revealedAttrCount: Object.keys(revealedAttrs).length,
-      rawRevealedAttrs: JSON.stringify(revealedAttrs),
+      attributeKeys: Object.keys(attributes),
+      attributeCount: Object.keys(attributes).length,
+      rawAttributes: JSON.stringify(attributes),
     });
 
     const extractAttributeValue = (attrName: string): string => {
-      // Find the attribute in the revealed_attrs object
-      const attrKey = Object.keys(revealedAttrs).find(key =>
-        key.includes(attrName) || revealedAttrs[key]?.name === attrName
-      );
-
-      const value = attrKey && revealedAttrs[attrKey]
-        ? revealedAttrs[attrKey].raw || revealedAttrs[attrKey].value || "N/A"
-        : "N/A";
+      // Direct lookup in the attributes object
+      const value = attributes[attrName] || "N/A";
 
       // Log each attribute extraction
       logger.info("Professional Conference: EXTRACT_ATTRIBUTE", {
         proofId,
         requestedAttr: attrName,
-        foundKey: attrKey || "NOT_FOUND",
+        found: attrName in attributes,
         extractedValue: value,
-        rawAttrData: attrKey ? JSON.stringify(revealedAttrs[attrKey]) : null,
       });
 
       return value;
     };
 
+    // Map the actual credential attributes to membership data
+    // Using attributes from Statement of Results + NYSC Certificate
     const membershipData = {
-      memberName: extractAttributeValue("member_name"),
-      email: extractAttributeValue("email"),
-      registrationNumber: extractAttributeValue("registration_number"),
-      designation: extractAttributeValue("designation"),
-      membershipStatus: extractAttributeValue("membership_status"),
-      issueDate: extractAttributeValue("issue_date"),
+      // From Statement of Results
+      surname: extractAttributeValue("surname"),
+      othernames: extractAttributeValue("othernames"),
+      matricNumber: extractAttributeValue("matric_number"),
+      programme: extractAttributeValue("programme"),
+      classOfDegree: extractAttributeValue("class_of_degree"),
+      yearEnd: extractAttributeValue("year_end"),
+      awardedDegree: extractAttributeValue("awarded_degree"),
+      // From NYSC Certificate
+      fullname: extractAttributeValue("fullname"),
+      callUpNumber: extractAttributeValue("call_up_number"),
+      startDate: extractAttributeValue("start_date"),
+      endDate: extractAttributeValue("end_date"),
+      certificateNumber: extractAttributeValue("certificate_number"),
+      issuedDate: extractAttributeValue("issued_date"),
     };
 
     // Log final extracted membership data
@@ -209,9 +202,11 @@ export async function POST(request: NextRequest) {
     });
 
     logger.info("Professional Conference: Membership verified successfully", {
-      memberName: membershipData.memberName,
-      designation: membershipData.designation,
-      registrationNumber: membershipData.registrationNumber,
+      fullname: membershipData.fullname,
+      surname: membershipData.surname,
+      programme: membershipData.programme,
+      classOfDegree: membershipData.classOfDegree,
+      certificateNumber: membershipData.certificateNumber,
     });
 
     return NextResponse.json({
