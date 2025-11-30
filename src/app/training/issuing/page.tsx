@@ -18,9 +18,9 @@ function IssuingCertificationContent() {
   const dataParam = searchParams.get("data");
   const formData = dataParam ? JSON.parse(decodeURIComponent(dataParam)) : {
     email: "",
-    title: "",
     surname: "",
     othernames: "",
+    nationalIdNumber: "",
     certificationTitle: "",
     trainingOrganization: "",
     courseCode: "",
@@ -32,7 +32,7 @@ function IssuingCertificationContent() {
     skills: "",
   };
 
-  const fullName = `${formData.title} ${formData.othernames} ${formData.surname}`;
+  const fullName = `${formData.othernames} ${formData.surname}`;
 
   useEffect(() => {
     // Auto-start issuing when page loads (only once, guard against React Strict Mode double-mount)

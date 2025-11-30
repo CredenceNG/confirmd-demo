@@ -11,9 +11,9 @@ export default function IssueCertificationPage() {
   const sampleHolders = [
     {
       id: "1",
-      title: "Mr.",
       surname: "Adeyemi",
       othernames: "Babatunde Oluwaseun",
+      nationalIdNumber: "12345678901",
       email: "b.adeyemi@example.com",
       certificationTitle: "Certified Data Analyst Professional",
       trainingOrganization: "Data Science Academy Nigeria",
@@ -27,9 +27,9 @@ export default function IssueCertificationPage() {
     },
     {
       id: "2",
-      title: "Mrs.",
       surname: "Okafor",
       othernames: "Chioma Grace",
+      nationalIdNumber: "23456789012",
       email: "c.okafor@example.com",
       certificationTitle: "Advanced Project Management Professional",
       trainingOrganization: "Lagos Business School",
@@ -43,9 +43,9 @@ export default function IssueCertificationPage() {
     },
     {
       id: "3",
-      title: "Engr.",
       surname: "Ibrahim",
       othernames: "Mohammed Sani",
+      nationalIdNumber: "34567890123",
       email: "m.ibrahim@example.com",
       certificationTitle: "Certified Cloud Solutions Architect",
       trainingOrganization: "TechHub Academy Abuja",
@@ -59,9 +59,9 @@ export default function IssueCertificationPage() {
     },
     {
       id: "4",
-      title: "Miss",
       surname: "Eze",
       othernames: "Ngozi Faith",
+      nationalIdNumber: "45678901234",
       email: "n.eze@example.com",
       certificationTitle: "Digital Marketing Specialist Certification",
       trainingOrganization: "Enugu Digital Marketing Institute",
@@ -75,9 +75,9 @@ export default function IssueCertificationPage() {
     },
     {
       id: "5",
-      title: "Dr.",
       surname: "Williams",
       othernames: "Tunde Michael",
+      nationalIdNumber: "56789012345",
       email: "t.williams@example.com",
       certificationTitle: "Certified Cybersecurity Professional",
       trainingOrganization: "Port Harcourt Cybersecurity Institute",
@@ -98,9 +98,9 @@ export default function IssueCertificationPage() {
 
   // Form state
   const [email, setEmail] = useState("");
-  const [title, setTitle] = useState("");
   const [surname, setSurname] = useState("");
   const [othernames, setOthernames] = useState("");
+  const [nationalIdNumber, setNationalIdNumber] = useState("");
   const [certificationTitle, setCertificationTitle] = useState("");
   const [trainingOrganization, setTrainingOrganization] = useState("");
   const [courseCode, setCourseCode] = useState("");
@@ -114,9 +114,9 @@ export default function IssueCertificationPage() {
   const handleSelectHolder = (holder: typeof sampleHolders[0]) => {
     setSelectedHolder(holder);
     setEmail(holder.email);
-    setTitle(holder.title);
     setSurname(holder.surname);
     setOthernames(holder.othernames);
+    setNationalIdNumber(holder.nationalIdNumber);
     setCertificationTitle(holder.certificationTitle);
     setTrainingOrganization(holder.trainingOrganization);
     setCourseCode(holder.courseCode);
@@ -131,9 +131,9 @@ export default function IssueCertificationPage() {
   const handleAddNewCandidate = () => {
     const newCandidate = {
       id: `${holders.length + 1}`,
-      title,
       surname,
       othernames,
+      nationalIdNumber,
       email,
       certificationTitle,
       trainingOrganization,
@@ -154,9 +154,9 @@ export default function IssueCertificationPage() {
   const handleIssueCredential = () => {
     const formData = {
       email,
-      title,
       surname,
       othernames,
+      nationalIdNumber,
       certificationTitle,
       trainingOrganization,
       courseCode,
@@ -172,12 +172,13 @@ export default function IssueCertificationPage() {
   };
 
   const filteredHolders = holders.filter((holder) => {
-    const fullName = `${holder.title || ""} ${holder.othernames || ""} ${holder.surname || ""}`;
+    const fullName = `${holder.othernames || ""} ${holder.surname || ""}`;
     const query = searchQuery.toLowerCase();
     return (
       fullName.toLowerCase().includes(query) ||
       (holder.surname || "").toLowerCase().includes(query) ||
       (holder.othernames || "").toLowerCase().includes(query) ||
+      (holder.nationalIdNumber || "").toLowerCase().includes(query) ||
       (holder.credentialNumber || "").toLowerCase().includes(query) ||
       (holder.certificationTitle || "").toLowerCase().includes(query) ||
       (holder.email || "").toLowerCase().includes(query)
@@ -234,9 +235,9 @@ export default function IssueCertificationPage() {
                       setSelectedHolder(null);
                       // Clear form
                       setEmail("");
-                      setTitle("");
                       setSurname("");
                       setOthernames("");
+                      setNationalIdNumber("");
                       setCertificationTitle("");
                       setTrainingOrganization("");
                       setCourseCode("");
@@ -282,7 +283,7 @@ export default function IssueCertificationPage() {
                       }`}
                     >
                       <p className="font-semibold text-gray-900">
-                        {holder.title} {holder.othernames} {holder.surname}
+                        {holder.othernames} {holder.surname}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">{holder.certificationTitle}</p>
                       <p className="text-xs text-purple-600 mt-1">{holder.credentialNumber}</p>
@@ -315,26 +316,6 @@ export default function IssueCertificationPage() {
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Title
-                          </label>
-                          <select
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                          >
-                            <option value="">Select Title</option>
-                            <option value="Mr.">Mr.</option>
-                            <option value="Mrs.">Mrs.</option>
-                            <option value="Miss">Miss</option>
-                            <option value="Ms.">Ms.</option>
-                            <option value="Dr.">Dr.</option>
-                            <option value="Prof.">Prof.</option>
-                            <option value="Engr.">Engr.</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
                             Surname
                           </label>
                           <input
@@ -353,6 +334,19 @@ export default function IssueCertificationPage() {
                             type="text"
                             value={othernames}
                             onChange={(e) => setOthernames(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            National ID Number (NIN)
+                          </label>
+                          <input
+                            type="text"
+                            value={nationalIdNumber}
+                            onChange={(e) => setNationalIdNumber(e.target.value)}
+                            placeholder="e.g., 12345678901"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                           />
                         </div>

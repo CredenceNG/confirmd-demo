@@ -12,9 +12,9 @@ import axios from "axios";
 
 interface CertificationData {
   email: string;
-  title: string;
   surname: string;
   othernames: string;
+  nationalIdNumber: string;
   certificationTitle: string;
   trainingOrganization: string;
   courseCode: string;
@@ -35,9 +35,9 @@ export async function POST(request: NextRequest) {
     const body: CertificationData = await request.json();
     const {
       email,
-      title,
       surname,
       othernames,
+      nationalIdNumber,
       certificationTitle,
       trainingOrganization,
       courseCode,
@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (
       !email ||
-      !title ||
       !surname ||
       !othernames ||
+      !nationalIdNumber ||
       !certificationTitle ||
       !trainingOrganization ||
       !courseCode ||
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const fullName = `${title} ${othernames} ${surname}`;
+    const fullName = `${othernames} ${surname}`;
     logger.info("[Training Certification API] Processing credential issuance for:", { fullName });
 
     // Get organization ID and credential definition ID
@@ -120,11 +120,6 @@ export async function POST(request: NextRequest) {
           emailId: email,
           attributes: [
             {
-              value: title,
-              name: "title",
-              isRequired: true,
-            },
-            {
               value: surname,
               name: "surname",
               isRequired: true,
@@ -132,6 +127,11 @@ export async function POST(request: NextRequest) {
             {
               value: othernames,
               name: "othernames",
+              isRequired: true,
+            },
+            {
+              value: nationalIdNumber,
+              name: "national_id_number",
               isRequired: true,
             },
             {

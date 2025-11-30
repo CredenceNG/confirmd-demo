@@ -135,10 +135,10 @@ export async function POST(request: NextRequest) {
         const revealedAttrs = proofData.presentationMessage?.presentations_attach?.[0]?.data?.json?.requested_proof?.revealed_attrs || {};
 
         const certificationData = {
-          fullName: `${revealedAttrs.title?.raw || ""} ${revealedAttrs.othernames?.raw || ""} ${revealedAttrs.surname?.raw || ""}`,
-          title: revealedAttrs.title?.raw || "",
+          fullName: `${revealedAttrs.othernames?.raw || ""} ${revealedAttrs.surname?.raw || ""}`,
           surname: revealedAttrs.surname?.raw || "",
           othernames: revealedAttrs.othernames?.raw || "",
+          nationalIdNumber: revealedAttrs.national_id_number?.raw || "",
           certificationTitle: revealedAttrs.certification_title?.raw || "",
           trainingOrganization: revealedAttrs.training_organization?.raw || "",
           courseCode: revealedAttrs.course_code?.raw || "",
