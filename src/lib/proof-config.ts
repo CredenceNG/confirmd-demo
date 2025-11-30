@@ -57,6 +57,10 @@ export function getCredentialMappings(): Record<string, CredentialMapping> {
       schemaId: process.env.EKYC_SCHEMA_ID || "",
       credDefId: process.env.EKYC_CRED_DEF_ID,
     },
+    "Health Card": {
+      schemaId: process.env.HEALTH_CARD_SCHEMA_ID || "",
+      credDefId: process.env.HEALTH_CARD_CRED_DEF_ID,
+    },
   };
 }
 

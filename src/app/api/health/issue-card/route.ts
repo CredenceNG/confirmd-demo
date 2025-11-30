@@ -12,10 +12,10 @@ import axios from "axios";
 
 interface HealthCardData {
   email: string;
-  title: string;
   surname: string;
   othernames: string;
   dateOfBirth: string;
+  gender: string;
   patientId: string;
   healthInsuranceNumber: string;
   bloodType: string;
@@ -36,10 +36,10 @@ export async function POST(request: NextRequest) {
     const body: HealthCardData = await request.json();
     const {
       email,
-      title,
       surname,
       othernames,
       dateOfBirth,
+      gender,
       patientId,
       healthInsuranceNumber,
       bloodType,
@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (
       !email ||
-      !title ||
       !surname ||
       !othernames ||
       !dateOfBirth ||
+      !gender ||
       !patientId ||
       !healthInsuranceNumber ||
       !bloodType ||
@@ -76,20 +76,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const fullName = `${title} ${othernames} ${surname}`;
+    const fullName = `${othernames} ${surname}`;
     logger.info("[Health Card API] Processing credential issuance for:", { fullName });
 
     // Get organization ID and credential definition ID
     const orgId = process.env.CONFIRMD_ORG_ID;
-    const credDefId = process.env.ISSUE_CRED_DEF_ID;
+    const credDefId = process.env.HEALTH_CARD_CRED_DEF_ID;
 
     if (!orgId || !credDefId) {
-      logger.error("[Health Card API] Missing configuration");
+      logger.error("[Health Card API] Missing configuration", {
+        orgId: !!orgId,
+        credDefId: !!credDefId,
+      });
       return NextResponse.json(
         {
           success: false,
           error: "configuration_error",
-          message: "Organization or credential definition not configured",
+          message: "Organization or credential definition not configured. Please set HEALTH_CARD_CRED_DEF_ID in your .env file.",
         },
         { status: 500 }
       );
@@ -109,11 +112,6 @@ export async function POST(request: NextRequest) {
           emailId: email,
           attributes: [
             {
-              value: title,
-              name: "title",
-              isRequired: true,
-            },
-            {
               value: surname,
               name: "surname",
               isRequired: true,
@@ -126,6 +124,11 @@ export async function POST(request: NextRequest) {
             {
               value: dateOfBirth,
               name: "date_of_birth",
+              isRequired: true,
+            },
+            {
+              value: gender,
+              name: "gender",
               isRequired: true,
             },
             {

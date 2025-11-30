@@ -11,10 +11,10 @@ export default function IssueHealthCardPage() {
   const samplePatients = [
     {
       id: "1",
-      title: "Mr.",
       surname: "Okonkwo",
       othernames: "Chukwuemeka Emmanuel",
       dateOfBirth: "1985-06-15",
+      gender: "M",
       email: "c.okonkwo@example.com",
       patientId: "UCH/2020/045678",
       healthInsuranceNumber: "NHIS-LAG-2020-045678",
@@ -28,10 +28,10 @@ export default function IssueHealthCardPage() {
     },
     {
       id: "2",
-      title: "Mrs.",
       surname: "Ibrahim",
       othernames: "Fatima Aisha",
       dateOfBirth: "1978-11-22",
+      gender: "F",
       email: "f.ibrahim@example.com",
       patientId: "LUTH/2018/032145",
       healthInsuranceNumber: "NHIS-LAG-2018-032145",
@@ -45,10 +45,10 @@ export default function IssueHealthCardPage() {
     },
     {
       id: "3",
-      title: "Dr.",
       surname: "Adeleke",
       othernames: "Oluwaseun Michael",
       dateOfBirth: "1992-03-08",
+      gender: "M",
       email: "o.adeleke@example.com",
       patientId: "ABUTH/2021/056789",
       healthInsuranceNumber: "NHIS-ABJ-2021-056789",
@@ -62,10 +62,10 @@ export default function IssueHealthCardPage() {
     },
     {
       id: "4",
-      title: "Miss",
       surname: "Eze",
       othernames: "Chidinma Joy",
       dateOfBirth: "1995-09-30",
+      gender: "F",
       email: "c.eze@example.com",
       patientId: "UNTH/2022/067890",
       healthInsuranceNumber: "NHIS-ENU-2022-067890",
@@ -79,10 +79,10 @@ export default function IssueHealthCardPage() {
     },
     {
       id: "5",
-      title: "Mr.",
       surname: "Yusuf",
       othernames: "Abdullahi Musa",
       dateOfBirth: "1980-12-05",
+      gender: "M",
       email: "a.yusuf@example.com",
       patientId: "AKTH/2019/023456",
       healthInsuranceNumber: "NHIS-KAN-2019-023456",
@@ -101,10 +101,10 @@ export default function IssueHealthCardPage() {
 
   // Form state
   const [email, setEmail] = useState("");
-  const [title, setTitle] = useState("");
   const [surname, setSurname] = useState("");
   const [othernames, setOthernames] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [gender, setGender] = useState("");
   const [patientId, setPatientId] = useState("");
   const [healthInsuranceNumber, setHealthInsuranceNumber] = useState("");
   const [bloodType, setBloodType] = useState("");
@@ -118,10 +118,10 @@ export default function IssueHealthCardPage() {
   const handleSelectPatient = (patient: typeof samplePatients[0]) => {
     setSelectedPatient(patient);
     setEmail(patient.email);
-    setTitle(patient.title);
     setSurname(patient.surname);
     setOthernames(patient.othernames);
     setDateOfBirth(patient.dateOfBirth);
+    setGender(patient.gender);
     setPatientId(patient.patientId);
     setHealthInsuranceNumber(patient.healthInsuranceNumber);
     setBloodType(patient.bloodType);
@@ -136,10 +136,10 @@ export default function IssueHealthCardPage() {
   const handleIssueCredential = () => {
     const formData = {
       email,
-      title,
       surname,
       othernames,
       dateOfBirth,
+      gender,
       patientId,
       healthInsuranceNumber,
       bloodType,
@@ -155,7 +155,7 @@ export default function IssueHealthCardPage() {
   };
 
   const filteredPatients = samplePatients.filter((patient) => {
-    const fullName = `${patient.title || ""} ${patient.othernames || ""} ${patient.surname || ""}`;
+    const fullName = `${patient.othernames || ""} ${patient.surname || ""}`;
     const query = searchQuery.toLowerCase();
     return (
       fullName.toLowerCase().includes(query) ||
@@ -232,7 +232,7 @@ export default function IssueHealthCardPage() {
                       }`}
                     >
                       <p className="font-semibold text-gray-900">
-                        {patient.title} {patient.othernames} {patient.surname}
+                        {patient.othernames} {patient.surname}
                       </p>
                       <p className="text-sm text-gray-600">{patient.patientId}</p>
                       <p className="text-xs text-teal-600 mt-1">{patient.email}</p>
@@ -263,25 +263,6 @@ export default function IssueHealthCardPage() {
                         Personal Information
                       </h3>
                       <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Title
-                          </label>
-                          <select
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
-                          >
-                            <option value="">Select Title</option>
-                            <option value="Mr.">Mr.</option>
-                            <option value="Mrs.">Mrs.</option>
-                            <option value="Miss">Miss</option>
-                            <option value="Ms.">Ms.</option>
-                            <option value="Dr.">Dr.</option>
-                            <option value="Prof.">Prof.</option>
-                          </select>
-                        </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Surname
@@ -316,6 +297,21 @@ export default function IssueHealthCardPage() {
                             onChange={(e) => setDateOfBirth(e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
                           />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Gender
+                          </label>
+                          <select
+                            value={gender}
+                            onChange={(e) => setGender(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                          </select>
                         </div>
 
                         <div>

@@ -1,0 +1,46 @@
+[
+  {
+    "name": "surname",
+    "credential": "Health Card"
+  },
+  {
+    "name": "othernames",
+    "credential": "Health Card"
+  },
+  {
+    "name": "date_of_birth",
+    "credential": "Health Card"
+  },
+  {
+    "name": "gender",
+    "credential": "Health Card"
+  },
+  {
+    "name": "patient_id",
+    "credential": "Health Card"
+  },
+  {
+    "name": "health_insurance_number",
+    "credential": "Health Card"
+  },
+  {
+    "name": "blood_type",
+    "credential": "Health Card"
+  },
+  {
+    "name": "genotype",
+    "credential": "Health Card"
+  },
+  {
+    "name": "allergies",
+    "credential": "Health Card"
+  },
+  {
+    "name": "chronic_conditions",
+    "credential": "Health Card"
+  },
+  {
+    "name": "issuing_hospital",
+    "credential": "Health Card"
+  }
+]
