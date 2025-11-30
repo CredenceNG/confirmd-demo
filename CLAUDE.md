@@ -1278,6 +1278,7 @@ Do not mark as tested if:
 | Demo | Status | Last Tested | Notes |
 |------|--------|-------------|-------|
 | **Professional Licensing** | ✅ Tested | 2025-11-11 | Proof request endpoint fixed, attributes aligned with schemas. |
+| **Professional Members** | ✅ Tested | 2025-11-30 | End-to-end verification using Statement of Results + NYSC Certificate. Uses /verified-proofs endpoint for attribute extraction. Discount based on class of degree. |
 
 ### Finance Category
 
