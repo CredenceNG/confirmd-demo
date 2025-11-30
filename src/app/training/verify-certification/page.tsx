@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 
 interface VerifiedTrainingData {
   fullName: string;
-  email: string;
+  surname: string;
+  othernames: string;
+  nationalIdNumber: string;
   certificationTitle: string;
   trainingOrganization: string;
   courseCode: string;
@@ -50,6 +52,9 @@ export default function EmployeeCompliancePortalPage() {
   const [submittedTraining, setSubmittedTraining] = useState<VerifiedTrainingData | null>(null);
   const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
   const [trainingCategory, setTrainingCategory] = useState("");
+  const [proofRecordId, setProofRecordId] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mock logged-in employee data
   const loggedInEmployee = {
@@ -132,6 +137,9 @@ export default function EmployeeCompliancePortalPage() {
       if (pollInterval) {
         clearInterval(pollInterval);
       }
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
     };
   }, [pollInterval]);
 
@@ -143,46 +151,111 @@ export default function EmployeeCompliancePortalPage() {
 
     try {
       setSubmissionStatus("generating-qr");
+      setErrorMessage("");
 
-      // Simulate API call to generate proof request
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the real API to request proof
+      console.log("[Training Verify] Requesting proof from API...");
+      const response = await fetch("/api/training/verify-certification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "request_proof",
+        }),
+      });
 
-      // Generate mock QR code
-      const mockQrCode = `confirmd://proof-request/${Date.now()}`;
-      setQrCodeValue(mockQrCode);
+      const data = await response.json();
+      console.log("[Training Verify] Proof request response:", data);
+
+      if (!response.ok || !data.success) {
+        const errorType = data.error?.error || data.error || "unknown_error";
+        const errorDescription = data.error?.error_description || data.message || "Failed to request proof";
+        console.error("[Training Verify] Failed to request proof:", {
+          error: errorType,
+          description: errorDescription,
+          fullError: data.error,
+          fullResponse: data,
+        });
+        setErrorMessage(`Failed to request proof: ${errorDescription}`);
+        setSubmissionStatus("idle");
+        return;
+      }
+
+      // Set the QR code and proof record ID from API response
+      const qrCode = data.data.qrCode || "";
+      const recordId = data.data.proofRecordId || "";
+
+      if (!qrCode) {
+        setErrorMessage("No QR code received from the server. Please try again.");
+        setSubmissionStatus("idle");
+        return;
+      }
+
+      setQrCodeValue(qrCode);
+      setProofRecordId(recordId);
       setSubmissionStatus("waiting-scan");
 
-      // Simulate waiting for wallet app scan and credential sharing
-      const mockInterval = setInterval(() => {
-        // Simulate random submission completion after 5-15 seconds
-        const shouldComplete = Math.random() > 0.7;
-        if (shouldComplete) {
-          clearInterval(mockInterval);
+      console.log("[Training Verify] QR code generated, starting polling for proof status...", { recordId });
 
-          // Mock submitted training data
-          const mockTraining: VerifiedTrainingData = {
-            fullName: loggedInEmployee.name,
-            email: loggedInEmployee.email,
-            certificationTitle: getCertificationTitle(trainingCategory),
-            trainingOrganization: "National Safety Council of Nigeria",
-            courseCode: getCourseCode(trainingCategory),
-            completionDate: "2024-10-15",
-            issueDate: "2024-10-16",
-            expiryDate: "2025-10-16",
-            grade: "Pass",
-            credentialNumber: `CERT-${Date.now().toString().slice(-8)}`,
-            skills: getSkills(trainingCategory)
-          };
+      // Start polling for proof verification status
+      const checkProofStatus = async () => {
+        try {
+          console.log("[Training Verify] Checking proof status...", { recordId });
+          const statusResponse = await fetch("/api/training/verify-certification", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "check_status",
+              proofRecordId: recordId,
+            }),
+          });
 
-          setSubmittedTraining(mockTraining);
-          setSubmissionStatus("submitted");
+          const statusData = await statusResponse.json();
+          console.log("[Training Verify] Proof status response:", statusData);
+
+          if (statusResponse.ok && statusData.success && statusData.data?.verified) {
+            // Proof has been verified - stop polling and show results
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
+
+            const certification = statusData.data.certification;
+            const verifiedTraining: VerifiedTrainingData = {
+              fullName: certification.fullName || `${certification.othernames || ""} ${certification.surname || ""}`.trim(),
+              surname: certification.surname || "",
+              othernames: certification.othernames || "",
+              nationalIdNumber: certification.nationalIdNumber || "",
+              certificationTitle: certification.certificationTitle || "",
+              trainingOrganization: certification.trainingOrganization || "",
+              courseCode: certification.courseCode || "",
+              completionDate: certification.completionDate || "",
+              issueDate: certification.issueDate || "",
+              expiryDate: certification.expiryDate || "",
+              grade: certification.grade || "",
+              credentialNumber: certification.credentialNumber || "",
+              skills: certification.skills || "",
+            };
+
+            setSubmittedTraining(verifiedTraining);
+            setSubmissionStatus("submitted");
+            console.log("[Training Verify] Proof verified successfully!", verifiedTraining);
+          }
+        } catch (pollError) {
+          console.error("[Training Verify] Error polling proof status:", pollError);
         }
-      }, 3000);
+      };
 
-      setPollInterval(mockInterval);
-    } catch (error) {
-      console.error("Error submitting training:", error);
-      alert("Failed to submit training. Please try again.");
+      // Poll every 3 seconds
+      pollIntervalRef.current = setInterval(checkProofStatus, 3000);
+      setPollInterval(pollIntervalRef.current);
+
+    } catch (error: any) {
+      console.error("[Training Verify] Error submitting training:", error);
+      setErrorMessage(`Network error: ${error.message || "Unable to connect to the server"}`);
       setSubmissionStatus("idle");
     }
   };
@@ -229,9 +302,15 @@ export default function EmployeeCompliancePortalPage() {
     setQrCodeValue("");
     setSubmittedTraining(null);
     setTrainingCategory("");
+    setProofRecordId("");
+    setErrorMessage("");
     if (pollInterval) {
       clearInterval(pollInterval);
       setPollInterval(null);
+    }
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
     }
   };
 
@@ -666,6 +745,21 @@ export default function EmployeeCompliancePortalPage() {
                     </div>
                   </div>
 
+                  {/* Error Message */}
+                  {errorMessage && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-semibold text-red-900">Error</p>
+                          <p className="text-sm text-red-800">{errorMessage}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     onClick={handleSubmitTraining}
                     disabled={!trainingCategory}
@@ -771,16 +865,16 @@ export default function EmployeeCompliancePortalPage() {
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 mb-6 border-2 border-green-200">
                   <h4 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <span>✅</span>
-                    Submitted Training Details
+                    Verified Training Details
                   </h4>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="bg-white rounded-lg p-4 border border-green-100">
-                      <p className="text-xs text-gray-500 mb-1">Your Name</p>
+                      <p className="text-xs text-gray-500 mb-1">Full Name</p>
                       <p className="font-bold text-gray-900">{submittedTraining.fullName}</p>
                     </div>
                     <div className="bg-white rounded-lg p-4 border border-green-100">
-                      <p className="text-xs text-gray-500 mb-1">Email</p>
-                      <p className="font-bold text-gray-900">{submittedTraining.email}</p>
+                      <p className="text-xs text-gray-500 mb-1">National ID Number</p>
+                      <p className="font-bold text-gray-900">{submittedTraining.nationalIdNumber}</p>
                     </div>
                     <div className="bg-white rounded-lg p-4 border border-green-100 md:col-span-2">
                       <p className="text-xs text-gray-500 mb-1">Certification</p>
@@ -807,6 +901,10 @@ export default function EmployeeCompliancePortalPage() {
                       <p className="font-bold text-gray-900">{submittedTraining.completionDate}</p>
                     </div>
                     <div className="bg-white rounded-lg p-4 border border-green-100">
+                      <p className="text-xs text-gray-500 mb-1">Issue Date</p>
+                      <p className="font-bold text-gray-900">{submittedTraining.issueDate}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-green-100 md:col-span-2">
                       <p className="text-xs text-gray-500 mb-1">Expiry Date</p>
                       <p className="font-bold text-gray-900">{submittedTraining.expiryDate}</p>
                     </div>
