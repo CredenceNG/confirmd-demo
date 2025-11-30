@@ -173,21 +173,6 @@ const demos: Demo[] = [
     ],
   },
   {
-    id: "health-verify-patient",
-    title: "Health Sector - Verify Patient for Visit",
-    description: "Verify patient medical health cards for hospital visits. Instantly access verified patient information including medical history, allergies, and chronic conditions for safe and efficient visit registration.",
-    href: "/health/verify-patient",
-    status: "active",
-    icon: "👨‍⚕️",
-    category: "Healthcare",
-    features: [
-      "Instant patient credential verification",
-      "Medical history access for visits",
-      "Allergy and condition alerts",
-      "Secure patient visit registration",
-    ],
-  },
-  {
     id: "health-kiosk",
     title: "Health Sector - Hospital Kiosk Check-In",
     description: "Self-service hospital kiosk for patient check-in using Health Card credentials. Patients scan a QR code with their wallet to verify identity and receive a visit number with department directions.",
