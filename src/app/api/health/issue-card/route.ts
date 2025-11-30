@@ -22,7 +22,6 @@ interface HealthCardData {
   genotype: string;
   allergies: string;
   chronicConditions: string;
-  issuingHospital: string;
   issuedDate: string;
   expiryDate: string;
 }
@@ -46,7 +45,6 @@ export async function POST(request: NextRequest) {
       genotype,
       allergies,
       chronicConditions,
-      issuingHospital,
       issuedDate,
       expiryDate,
     } = body;
@@ -62,7 +60,6 @@ export async function POST(request: NextRequest) {
       !healthInsuranceNumber ||
       !bloodType ||
       !genotype ||
-      !issuingHospital ||
       !issuedDate ||
       !expiryDate
     ) {
@@ -162,11 +159,6 @@ export async function POST(request: NextRequest) {
               isRequired: true,
             },
             {
-              value: issuingHospital,
-              name: "issuing_hospital",
-              isRequired: true,
-            },
-            {
               value: issuedDate,
               name: "issuing_date",
               isRequired: true,
@@ -208,7 +200,6 @@ export async function POST(request: NextRequest) {
           fullName,
           patientId,
           healthInsuranceNumber,
-          issuingHospital,
           message: "Medical health card issued successfully",
           response: response.data,
         },

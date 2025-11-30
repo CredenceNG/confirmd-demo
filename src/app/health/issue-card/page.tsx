@@ -22,7 +22,6 @@ export default function IssueHealthCardPage() {
       genotype: "AA",
       allergies: "Penicillin",
       chronicConditions: "Hypertension",
-      issuingHospital: "University College Hospital, Ibadan",
       issuedDate: "2020-03-15",
       expiryDate: "2027-03-15",
     },
@@ -39,7 +38,6 @@ export default function IssueHealthCardPage() {
       genotype: "AS",
       allergies: "None",
       chronicConditions: "Type 2 Diabetes",
-      issuingHospital: "Lagos University Teaching Hospital",
       issuedDate: "2018-05-10",
       expiryDate: "2028-05-10",
     },
@@ -56,7 +54,6 @@ export default function IssueHealthCardPage() {
       genotype: "AA",
       allergies: "Sulfa drugs",
       chronicConditions: "None",
-      issuingHospital: "Ahmadu Bello University Teaching Hospital",
       issuedDate: "2021-08-20",
       expiryDate: "2028-08-20",
     },
@@ -73,7 +70,6 @@ export default function IssueHealthCardPage() {
       genotype: "AA",
       allergies: "Latex",
       chronicConditions: "Asthma",
-      issuingHospital: "University of Nigeria Teaching Hospital",
       issuedDate: "2022-01-12",
       expiryDate: "2029-01-12",
     },
@@ -90,7 +86,6 @@ export default function IssueHealthCardPage() {
       genotype: "AA",
       allergies: "Aspirin",
       chronicConditions: "None",
-      issuingHospital: "Aminu Kano Teaching Hospital",
       issuedDate: "2019-07-25",
       expiryDate: "2026-07-25",
     },
@@ -111,7 +106,6 @@ export default function IssueHealthCardPage() {
   const [genotype, setGenotype] = useState("");
   const [allergies, setAllergies] = useState("");
   const [chronicConditions, setChronicConditions] = useState("");
-  const [issuingHospital, setIssuingHospital] = useState("");
   const [issuedDate, setIssuedDate] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
 
@@ -128,7 +122,6 @@ export default function IssueHealthCardPage() {
     setGenotype(patient.genotype);
     setAllergies(patient.allergies);
     setChronicConditions(patient.chronicConditions);
-    setIssuingHospital(patient.issuingHospital);
     setIssuedDate(patient.issuedDate);
     setExpiryDate(patient.expiryDate);
   };
@@ -146,7 +139,6 @@ export default function IssueHealthCardPage() {
       genotype,
       allergies,
       chronicConditions,
-      issuingHospital,
       issuedDate,
       expiryDate,
     };
@@ -433,24 +425,12 @@ export default function IssueHealthCardPage() {
                       </div>
                     </div>
 
-                    {/* Issuing Information */}
+                    {/* Validity Dates */}
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                        Issuing Information
+                        Validity Dates
                       </h3>
                       <div className="grid md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Issuing Hospital
-                          </label>
-                          <input
-                            type="text"
-                            value={issuingHospital}
-                            onChange={(e) => setIssuingHospital(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
-                          />
-                        </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Issued Date
