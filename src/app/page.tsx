@@ -336,6 +336,7 @@ const demos: Demo[] = [
     status: "active",
     icon: "🎓",
     category: "Government & Public Sector",
+    tested: true,
     features: [
       "Student credential verification",
       "Multi-attribute proof requests",
