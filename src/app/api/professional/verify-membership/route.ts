@@ -110,6 +110,17 @@ export async function POST(request: NextRequest) {
     logger.info("Professional Conference: Proof details retrieved", {
       status: response.data.status,
       state: response.data.state,
+      hasPresentation: !!response.data.presentation,
+      hasRequestedProof: !!response.data.presentation?.requested_proof,
+    });
+
+    // Log raw response structure for debugging
+    logger.info("Professional Conference: RAW PROOF RESPONSE", {
+      proofId,
+      state: response.data.state,
+      presentationKeys: response.data.presentation ? Object.keys(response.data.presentation) : [],
+      requestedProofKeys: response.data.presentation?.requested_proof ? Object.keys(response.data.presentation.requested_proof) : [],
+      rawResponse: JSON.stringify(response.data).substring(0, 2000), // First 2000 chars
     });
 
     // Check if proof is verified
@@ -149,16 +160,34 @@ export async function POST(request: NextRequest) {
     // Extract membership data from revealed attributes
     const revealedAttrs = presentation.requested_proof.revealed_attrs;
 
+    // Log revealed attributes for debugging
+    logger.info("Professional Conference: REVEALED ATTRIBUTES", {
+      proofId,
+      revealedAttrKeys: Object.keys(revealedAttrs),
+      revealedAttrCount: Object.keys(revealedAttrs).length,
+      rawRevealedAttrs: JSON.stringify(revealedAttrs),
+    });
+
     const extractAttributeValue = (attrName: string): string => {
       // Find the attribute in the revealed_attrs object
       const attrKey = Object.keys(revealedAttrs).find(key =>
         key.includes(attrName) || revealedAttrs[key]?.name === attrName
       );
 
-      if (attrKey && revealedAttrs[attrKey]) {
-        return revealedAttrs[attrKey].raw || revealedAttrs[attrKey].value || "N/A";
-      }
-      return "N/A";
+      const value = attrKey && revealedAttrs[attrKey]
+        ? revealedAttrs[attrKey].raw || revealedAttrs[attrKey].value || "N/A"
+        : "N/A";
+
+      // Log each attribute extraction
+      logger.info("Professional Conference: EXTRACT_ATTRIBUTE", {
+        proofId,
+        requestedAttr: attrName,
+        foundKey: attrKey || "NOT_FOUND",
+        extractedValue: value,
+        rawAttrData: attrKey ? JSON.stringify(revealedAttrs[attrKey]) : null,
+      });
+
+      return value;
     };
 
     const membershipData = {
@@ -169,6 +198,15 @@ export async function POST(request: NextRequest) {
       membershipStatus: extractAttributeValue("membership_status"),
       issueDate: extractAttributeValue("issue_date"),
     };
+
+    // Log final extracted membership data
+    logger.info("Professional Conference: EXTRACTED MEMBERSHIP DATA", {
+      proofId,
+      membershipData: JSON.stringify(membershipData),
+      hasValidData: Object.values(membershipData).some(v => v !== "N/A"),
+      naCount: Object.values(membershipData).filter(v => v === "N/A").length,
+      totalFields: Object.keys(membershipData).length,
+    });
 
     logger.info("Professional Conference: Membership verified successfully", {
       memberName: membershipData.memberName,
