@@ -78,6 +78,23 @@ export async function POST(request: NextRequest) {
     const fullName = `${othernames} ${surname}`;
     logger.info("[Training Certification API] Processing credential issuance for:", { fullName });
 
+    // Debug: Log all received values
+    logger.info("[Training Certification API] Received values:", {
+      email,
+      surname,
+      othernames,
+      nationalIdNumber,
+      certificationTitle,
+      trainingOrganization,
+      courseCode,
+      completionDate,
+      issueDate,
+      expiryDate,
+      grade,
+      credentialNumber,
+      skills,
+    });
+
     // Get organization ID and credential definition ID
     const orgId = process.env.CONFIRMD_ORG_ID;
     const credDefId = process.env.TRAINING_CERTIFICATION_CRED_DEF_ID;
@@ -156,7 +173,7 @@ export async function POST(request: NextRequest) {
             },
             {
               value: issueDate,
-              name: "issue_date",
+              name: "issued_date",
               isRequired: true,
             },
             {
