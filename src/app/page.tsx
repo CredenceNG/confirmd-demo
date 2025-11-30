@@ -165,6 +165,7 @@ const demos: Demo[] = [
     status: "active",
     icon: "🏥",
     category: "Healthcare",
+    tested: true,
     features: [
       "Issue digital medical health cards",
       "Patient medical records management",
@@ -180,6 +181,7 @@ const demos: Demo[] = [
     status: "active",
     icon: "🖥️",
     category: "Healthcare",
+    tested: true,
     features: [
       "Self-service kiosk check-in",
       "Health Card credential verification",
