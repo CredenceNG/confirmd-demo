@@ -195,11 +195,12 @@ export default function VerifyTrainingCertificationPage() {
 
   // Verify certification credential
   const verifyCertification = async (proofIdToVerify: string) => {
-    console.log('[Training Verify] Verifying certification', { proofId: proofIdToVerify });
+    console.log('[Training Verify] Verifying certification', { proofId: proofIdToVerify, sessionId });
     setConnectionStatus("verifying");
     setConnectionMessage("Verifying credentials...");
 
     try {
+      // First, verify the proof using the standard verify endpoint
       const verifyResponse = await fetch('/api/proofs/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -209,30 +210,51 @@ export default function VerifyTrainingCertificationPage() {
       const verifyData = await verifyResponse.json();
       console.log('[Training Verify] Verify response:', verifyData);
 
+      // Check if verification was successful
       if (verifyData.success && verifyData.data?.isVerified === true && verifyData.data?.state === 'done') {
-        console.log('[Training Verify] Proof verified successfully');
+        console.log('[Training Verify] Proof verified, fetching certification details');
 
-        // Extract presented attributes from the verification response
-        const attrs = verifyData.data.presentedAttributes || {};
-
-        setCertificationData({
-          fullName: `${attrs.othernames || ""} ${attrs.surname || ""}`.trim(),
-          surname: attrs.surname || "",
-          othernames: attrs.othernames || "",
-          nationalIdNumber: attrs.national_id_number || "",
-          certificationTitle: attrs.certification_title || "",
-          trainingOrganization: attrs.training_organization || "",
-          courseCode: attrs.course_code || "",
-          completionDate: attrs.completion_date || "",
-          issueDate: attrs.issue_date || "",
-          expiryDate: attrs.expiry_date || "",
-          grade: attrs.grade || "",
-          credentialNumber: attrs.credential_number || "",
-          skills: attrs.skills || "",
+        // Now fetch the training-specific details with proper attribute extraction
+        const certResponse = await fetch('/api/training/verify-certification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            proofId: proofIdToVerify,
+            sessionId,
+          }),
         });
 
-        setConnectionStatus("verified");
-        setConnectionMessage("Credentials verified successfully!");
+        const certData = await certResponse.json();
+        console.log('[Training Verify] Certification details response:', certData);
+
+        if (certData.success && certData.data?.verified) {
+          console.log('[Training Verify] Certification verified successfully', certData.data);
+          const cert = certData.data.certification;
+
+          setCertificationData({
+            fullName: `${cert.othernames || ""} ${cert.surname || ""}`.trim(),
+            surname: cert.surname || "",
+            othernames: cert.othernames || "",
+            nationalIdNumber: cert.nationalIdNumber || "",
+            certificationTitle: cert.certificationTitle || "",
+            trainingOrganization: cert.trainingOrganization || "",
+            courseCode: cert.courseCode || "",
+            completionDate: cert.completionDate || "",
+            issueDate: cert.issueDate || "",
+            expiryDate: cert.expiryDate || "",
+            grade: cert.grade || "",
+            credentialNumber: cert.credentialNumber || "",
+            skills: cert.skills || "",
+          });
+
+          setConnectionStatus("verified");
+          setConnectionMessage("Credentials verified successfully!");
+        } else {
+          // Fallback: show verified but no details if certification endpoint fails
+          console.log('[Training Verify] Using fallback - certification endpoint failed but proof verified');
+          setConnectionStatus("verified");
+          setConnectionMessage("Credentials verified!");
+        }
       } else {
         const errorMsg = verifyData.error?.error_description ||
           `Verification pending (state: ${verifyData.data?.state})`;
