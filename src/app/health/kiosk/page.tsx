@@ -19,10 +19,11 @@ export default function HospitalKioskPage() {
   const [proofId, setProofId] = useState<string>("");
   const [proofUrl, setProofUrl] = useState<string>("");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
-  // Update clock every second
+  // Update clock every second - only on client side to avoid hydration mismatch
   useEffect(() => {
+    setCurrentTime(new Date()); // Set initial time on client
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -240,10 +241,10 @@ export default function HospitalKioskPage() {
           </div>
           <div className="text-right">
             <p className="text-2xl font-mono font-bold text-white">
-              {currentTime.toLocaleTimeString()}
+              {currentTime ? currentTime.toLocaleTimeString() : "--:--:--"}
             </p>
             <p className="text-sm text-blue-200">
-              {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              {currentTime ? currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : "Loading..."}
             </p>
           </div>
         </div>
