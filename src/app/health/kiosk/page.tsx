@@ -227,7 +227,7 @@ export default function HospitalKioskPage() {
   const qrCodeValue = invitationUrl || "";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-teal-900 flex flex-col">
       {/* Kiosk Header */}
       <div className="bg-white/10 backdrop-blur-sm border-b border-white/20 px-8 py-4">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
@@ -236,18 +236,28 @@ export default function HospitalKioskPage() {
               <span className="text-2xl">🏥</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">General Hospital</h1>
-              <p className="text-sm text-blue-200">Patient Check-In Kiosk</p>
+              <h1 className="text-xl font-bold text-white">General Hospital Ilorin</h1>
+              <p className="text-sm text-emerald-200">Referral Center • Patient Check-In Kiosk</p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-2xl font-mono font-bold text-white">
               {currentTime ? currentTime.toLocaleTimeString() : "--:--:--"}
             </p>
-            <p className="text-sm text-blue-200">
+            <p className="text-sm text-emerald-200">
               {currentTime ? currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : "Loading..."}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Story Context Banner */}
+      <div className="bg-emerald-800/50 border-b border-emerald-600/30 px-8 py-3">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-sm text-emerald-100 text-center">
+            <strong>Referral patients from rural PHCs:</strong> Scan your Digital Health Card to check in instantly.
+            No need to recreate your medical history - your blood type, allergies, and conditions are verified automatically.
+          </p>
         </div>
       </div>
 
@@ -259,23 +269,27 @@ export default function HospitalKioskPage() {
           {connectionStatus === "idle" && (
             <div className="text-center">
               <div className="mb-8">
-                <div className="w-32 h-32 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-teal-500/30 animate-pulse">
+                <div className="w-32 h-32 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-emerald-500/30 animate-pulse">
                   <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
                 <h2 className="text-4xl font-bold text-white mb-4">
-                  Patient Check-In
+                  Referral Patient Check-In
                 </h2>
-                <p className="text-xl text-blue-200 mb-8">
-                  Use your Medical Health Card to check in
+                <p className="text-xl text-emerald-200 mb-4">
+                  Use your Digital Health Card from your PHC
+                </p>
+                <p className="text-sm text-emerald-300/80 max-w-md mx-auto">
+                  No referral letter needed. Your blood type, allergies, and medical history
+                  will be verified instantly from your credential.
                 </p>
               </div>
 
               <button
                 onClick={startCheckIn}
                 disabled={isLoadingInvitation}
-                className="px-16 py-6 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-2xl font-bold rounded-2xl hover:from-teal-600 hover:to-cyan-600 transition-all shadow-2xl shadow-teal-500/30 hover:shadow-teal-500/50 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-16 py-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-2xl font-bold rounded-2xl hover:from-emerald-600 hover:to-teal-600 transition-all shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoadingInvitation ? (
                   <span className="flex items-center gap-3">
@@ -306,16 +320,24 @@ export default function HospitalKioskPage() {
               <div className="mt-12 grid grid-cols-3 gap-6 text-center">
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
                   <div className="text-4xl mb-3">📱</div>
-                  <p className="text-sm text-blue-200">Open your wallet app</p>
+                  <p className="text-sm text-emerald-200">Open your wallet app</p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
                   <div className="text-4xl mb-3">📷</div>
-                  <p className="text-sm text-blue-200">Scan the QR code</p>
+                  <p className="text-sm text-emerald-200">Scan the QR code</p>
                 </div>
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
                   <div className="text-4xl mb-3">✅</div>
-                  <p className="text-sm text-blue-200">Approve the request</p>
+                  <p className="text-sm text-emerald-200">Share your Health Card</p>
                 </div>
+              </div>
+
+              {/* Benefits for rural patients */}
+              <div className="mt-8 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 max-w-lg mx-auto">
+                <p className="text-xs text-emerald-300">
+                  <strong>Don't have a Digital Health Card?</strong> Visit your local Primary Healthcare Center
+                  to get one issued. If you're from a Sunrise Health Initiative PHC, you may already have one.
+                </p>
               </div>
             </div>
           )}
@@ -324,17 +346,17 @@ export default function HospitalKioskPage() {
           {(connectionStatus === "connecting" || connectionStatus === "connected" || connectionStatus === "requesting-proof") && (
             <div className="text-center">
               <h2 className="text-3xl font-bold text-white mb-6">
-                {connectionStatus === "requesting-proof" ? "Approve Request in Wallet" : "Scan QR Code"}
+                {connectionStatus === "requesting-proof" ? "Share Your Health Card" : "Scan QR Code"}
               </h2>
 
               {/* QR Code */}
               <div className="relative inline-block mb-8">
-                <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-3xl blur-xl opacity-30"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl blur-xl opacity-30"></div>
                 <div className="relative bg-white p-8 rounded-3xl shadow-2xl">
                   {isLoadingInvitation || !invitationUrl ? (
                     <div className="w-72 h-72 flex items-center justify-center">
                       <div className="text-center">
-                        <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                         <p className="text-gray-600">Generating QR Code...</p>
                       </div>
                     </div>
@@ -351,12 +373,12 @@ export default function HospitalKioskPage() {
 
               {/* Status */}
               <div className="mb-8">
-                <div className="flex items-center justify-center gap-3 text-xl text-blue-200">
-                  <div className="w-3 h-3 bg-teal-400 rounded-full animate-pulse"></div>
+                <div className="flex items-center justify-center gap-3 text-xl text-emerald-200">
+                  <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
                   {statusMessage || "Waiting for connection..."}
                 </div>
                 {proofStatus && (
-                  <p className="text-sm text-blue-300 mt-2">Status: {proofStatus}</p>
+                  <p className="text-sm text-emerald-300 mt-2">Status: {proofStatus}</p>
                 )}
               </div>
 
@@ -367,7 +389,7 @@ export default function HospitalKioskPage() {
                     href={proofUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold rounded-xl hover:from-teal-600 hover:to-cyan-600 transition-all shadow-lg"
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -388,7 +410,7 @@ export default function HospitalKioskPage() {
                   setProofId("");
                   setProofUrl("");
                 }}
-                className="text-blue-300 hover:text-white transition-colors"
+                className="text-emerald-300 hover:text-white transition-colors"
               >
                 Cancel
               </button>
@@ -411,11 +433,16 @@ export default function HospitalKioskPage() {
                 )}
               </div>
               <h2 className="text-3xl font-bold text-white mb-4">
-                {connectionStatus === "verified" ? "Check-In Complete!" : "Verifying Health Card..."}
+                {connectionStatus === "verified" ? "Health Card Verified!" : "Verifying Health Card..."}
               </h2>
               <p className="text-xl text-green-200">
-                {statusMessage || "Processing..."}
+                {statusMessage || "Retrieving your medical information..."}
               </p>
+              {connectionStatus === "verified" && (
+                <p className="text-sm text-emerald-300 mt-4">
+                  Your blood type, allergies, and medical history have been shared with the hospital.
+                </p>
+              )}
             </div>
           )}
 
@@ -425,10 +452,10 @@ export default function HospitalKioskPage() {
       {/* Footer */}
       <div className="bg-white/5 backdrop-blur-sm border-t border-white/10 px-8 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <p className="text-sm text-blue-300">
-            Need assistance? Please visit the reception desk.
+          <p className="text-sm text-emerald-300">
+            Need assistance? Please visit the reception desk. • Don't have a Health Card? Ask about registration.
           </p>
-          <a href="/" className="text-sm text-blue-300 hover:text-white transition-colors">
+          <a href="/" className="text-sm text-emerald-300 hover:text-white transition-colors">
             Back to Demos
           </a>
         </div>

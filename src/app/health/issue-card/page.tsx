@@ -7,87 +7,87 @@ import Link from "next/link";
 export default function IssueHealthCardPage() {
   const router = useRouter();
 
-  // Sample patients for demo
+  // Sample patients for demo - rural community members in Kwara State
   const samplePatients = [
     {
       id: "1",
-      surname: "Okonkwo",
-      othernames: "Chukwuemeka Emmanuel",
-      dateOfBirth: "1985-06-15",
-      gender: "M",
-      email: "c.okonkwo@example.com",
-      patientId: "UCH/2020/045678",
-      healthInsuranceNumber: "NHIS-LAG-2020-045678",
+      surname: "Abdulkareem",
+      othernames: "Aminat Folashade",
+      dateOfBirth: "1988-03-12",
+      gender: "F",
+      email: "aminat.abdulkareem@gmail.com",
+      patientId: "SHI/OKE-ERO/2024/00156",
+      healthInsuranceNumber: "KWSHIA-2024-00156",
       bloodType: "O+",
-      genotype: "AA",
-      allergies: "Penicillin",
-      chronicConditions: "Hypertension",
-      issuedDate: "2020-03-15",
-      expiryDate: "2027-03-15",
+      genotype: "AS",
+      allergies: "Penicillin, Sulfonamides",
+      chronicConditions: "Sickle Cell Trait (carrier)",
+      issuedDate: "2024-11-15",
+      expiryDate: "2029-11-15",
     },
     {
       id: "2",
-      surname: "Ibrahim",
-      othernames: "Fatima Aisha",
-      dateOfBirth: "1978-11-22",
-      gender: "F",
-      email: "f.ibrahim@example.com",
-      patientId: "LUTH/2018/032145",
-      healthInsuranceNumber: "NHIS-LAG-2018-032145",
+      surname: "Oyedeji",
+      othernames: "Adebayo Samuel",
+      dateOfBirth: "1965-08-20",
+      gender: "M",
+      email: "adebayo.oyedeji@yahoo.com",
+      patientId: "SHI/ILORIN-W/2024/00089",
+      healthInsuranceNumber: "KWSHIA-2024-00089",
       bloodType: "A+",
-      genotype: "AS",
+      genotype: "AA",
       allergies: "None",
-      chronicConditions: "Type 2 Diabetes",
-      issuedDate: "2018-05-10",
-      expiryDate: "2028-05-10",
+      chronicConditions: "Type 2 Diabetes, Hypertension",
+      issuedDate: "2024-10-05",
+      expiryDate: "2029-10-05",
     },
     {
       id: "3",
-      surname: "Adeleke",
-      othernames: "Oluwaseun Michael",
-      dateOfBirth: "1992-03-08",
-      gender: "M",
-      email: "o.adeleke@example.com",
-      patientId: "ABUTH/2021/056789",
-      healthInsuranceNumber: "NHIS-ABJ-2021-056789",
-      bloodType: "B+",
+      surname: "Mohammed",
+      othernames: "Halima Zainab",
+      dateOfBirth: "1995-12-03",
+      gender: "F",
+      email: "halima.mohammed@gmail.com",
+      patientId: "SHI/PATIGI/2024/00234",
+      healthInsuranceNumber: "KWSHIA-2024-00234",
+      bloodType: "B-",
       genotype: "AA",
-      allergies: "Sulfa drugs",
-      chronicConditions: "None",
-      issuedDate: "2021-08-20",
-      expiryDate: "2028-08-20",
+      allergies: "Latex, Iodine contrast",
+      chronicConditions: "Asthma",
+      issuedDate: "2024-11-20",
+      expiryDate: "2029-11-20",
     },
     {
       id: "4",
-      surname: "Eze",
-      othernames: "Chidinma Joy",
-      dateOfBirth: "1995-09-30",
-      gender: "F",
-      email: "c.eze@example.com",
-      patientId: "UNTH/2022/067890",
-      healthInsuranceNumber: "NHIS-ENU-2022-067890",
+      surname: "Afolabi",
+      othernames: "Kehinde Oluwole",
+      dateOfBirth: "1972-05-18",
+      gender: "M",
+      email: "kehinde.afolabi@hotmail.com",
+      patientId: "SHI/OFFA/2024/00067",
+      healthInsuranceNumber: "KWSHIA-2024-00067",
       bloodType: "AB+",
       genotype: "AA",
-      allergies: "Latex",
-      chronicConditions: "Asthma",
-      issuedDate: "2022-01-12",
-      expiryDate: "2029-01-12",
+      allergies: "Aspirin, NSAIDs",
+      chronicConditions: "Peptic Ulcer Disease",
+      issuedDate: "2024-09-12",
+      expiryDate: "2029-09-12",
     },
     {
       id: "5",
-      surname: "Yusuf",
-      othernames: "Abdullahi Musa",
-      dateOfBirth: "1980-12-05",
-      gender: "M",
-      email: "a.yusuf@example.com",
-      patientId: "AKTH/2019/023456",
-      healthInsuranceNumber: "NHIS-KAN-2019-023456",
+      surname: "Balogun",
+      othernames: "Fatimah Aduke",
+      dateOfBirth: "2001-01-25",
+      gender: "F",
+      email: "fatimah.balogun@gmail.com",
+      patientId: "SHI/ILORIN-E/2024/00312",
+      healthInsuranceNumber: "KWSHIA-2024-00312",
       bloodType: "O-",
-      genotype: "AA",
-      allergies: "Aspirin",
-      chronicConditions: "None",
-      issuedDate: "2019-07-25",
-      expiryDate: "2026-07-25",
+      genotype: "SS",
+      allergies: "Codeine, Tramadol",
+      chronicConditions: "Sickle Cell Disease (HbSS)",
+      issuedDate: "2024-11-28",
+      expiryDate: "2029-11-28",
     },
   ];
 
@@ -164,7 +164,7 @@ export default function IssueHealthCardPage() {
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 overflow-hidden">
-            <div className="bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 px-6 py-6 relative overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-700 via-teal-600 to-cyan-700 px-6 py-6 relative overflow-hidden">
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -172,21 +172,51 @@ export default function IssueHealthCardPage() {
               <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-4xl">🏥</span>
-                    <h1 className="text-3xl font-bold text-white drop-shadow-lg">
-                      Issue Medical Health Card
-                    </h1>
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                      <span className="text-3xl">🌅</span>
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-bold text-white drop-shadow-lg">
+                        Sunrise Health Initiative
+                      </h1>
+                      <p className="text-emerald-200 text-sm">Primary Healthcare Center Network • Kwara State</p>
+                    </div>
                   </div>
-                  <p className="text-cyan-100">
-                    Issue verifiable health credentials to patients
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1 bg-emerald-500/20 text-emerald-100 border border-emerald-400/30 rounded-full text-xs font-medium">
+                    Community Health Worker Portal
+                  </span>
+                  <Link
+                    href="/"
+                    className="text-sm text-white/90 hover:text-white underline"
+                  >
+                    ← Back to Demos
+                  </Link>
+                </div>
+              </div>
+            </div>
+            {/* Story Context Banner */}
+            <div className="bg-emerald-900/90 px-6 py-4 border-t border-emerald-600/30">
+              <div className="flex items-start gap-3">
+                <div className="text-xl">📋</div>
+                <div>
+                  <p className="text-sm text-emerald-100">
+                    <strong>The Challenge:</strong> Sunrise Health Initiative serves 47 rural communities with limited internet.
+                    Paper records were lost to floods and fires. When patients traveled to referral hospitals in Ilorin,
+                    doctors had no access to their medical history, blood type, or known allergies.
+                  </p>
+                  <p className="text-sm text-emerald-200 mt-2">
+                    <strong>The Solution:</strong> Community Health Workers now issue digital health cards directly to patients' phones.
+                    These credentials work offline and travel with the patient. When they visit any hospital,
+                    their critical health information is instantly accessible - no phone calls, no paper, no lost records.
+                  </p>
+                  <p className="text-sm text-emerald-300 mt-2">
+                    <strong>For Planning:</strong> Every credential issued creates anonymized data for the State Ministry of Health -
+                    genotype distribution, chronic disease prevalence, allergy patterns. For the first time,
+                    Kwara State has real data for healthcare planning and resource allocation.
                   </p>
                 </div>
-                <Link
-                  href="/"
-                  className="text-sm text-white/90 hover:text-white underline"
-                >
-                  ← Back to Demos
-                </Link>
               </div>
             </div>
           </div>
@@ -197,17 +227,20 @@ export default function IssueHealthCardPage() {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <span>👤</span>
-                  Select Patient
+                  Community Members
                 </h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  Select a patient who has completed registration at your PHC
+                </p>
 
                 {/* Search */}
                 <div className="mb-4">
                   <input
                     type="text"
-                    placeholder="Search patients..."
+                    placeholder="Search by name or patient ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
 
@@ -219,15 +252,18 @@ export default function IssueHealthCardPage() {
                       onClick={() => handleSelectPatient(patient)}
                       className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
                         selectedPatient?.id === patient.id
-                          ? "border-teal-500 bg-teal-50"
-                          : "border-gray-200 hover:border-teal-300 hover:bg-gray-50"
+                          ? "border-emerald-500 bg-emerald-50"
+                          : "border-gray-200 hover:border-emerald-300 hover:bg-gray-50"
                       }`}
                     >
                       <p className="font-semibold text-gray-900">
                         {patient.othernames} {patient.surname}
                       </p>
                       <p className="text-sm text-gray-600">{patient.patientId}</p>
-                      <p className="text-xs text-teal-600 mt-1">{patient.email}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">{patient.bloodType}</span>
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">{patient.genotype}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -239,13 +275,23 @@ export default function IssueHealthCardPage() {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <span>📋</span>
-                  Health Card Details
+                  Digital Health Card Details
                 </h2>
 
                 {!selectedPatient ? (
                   <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🏥</div>
-                    <p className="text-gray-500">Select a patient to begin issuing their health card</p>
+                    <div className="text-6xl mb-4">🌅</div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Issue a Digital Health Card</h3>
+                    <p className="text-gray-500 mb-4">Select a community member to issue their digital health card</p>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 max-w-md mx-auto text-left">
+                      <p className="text-sm text-emerald-800 font-medium mb-2">This credential will include:</p>
+                      <ul className="text-xs text-emerald-700 space-y-1">
+                        <li>• Blood type and genotype (critical for emergencies)</li>
+                        <li>• Known allergies (prevents medication errors)</li>
+                        <li>• Chronic conditions (ensures continuity of care)</li>
+                        <li>• Kwara State Health Insurance number</li>
+                      </ul>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -263,7 +309,7 @@ export default function IssueHealthCardPage() {
                             type="text"
                             value={surname}
                             onChange={(e) => setSurname(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
                           />
                         </div>
 
@@ -275,7 +321,7 @@ export default function IssueHealthCardPage() {
                             type="text"
                             value={othernames}
                             onChange={(e) => setOthernames(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
                           />
                         </div>
 
@@ -459,17 +505,32 @@ export default function IssueHealthCardPage() {
 
                     {/* Action Button */}
                     <div className="pt-4">
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                        <div className="flex items-start gap-2">
+                          <span className="text-amber-600">⚠️</span>
+                          <div>
+                            <p className="text-sm text-amber-800 font-medium">Before issuing:</p>
+                            <p className="text-xs text-amber-700 mt-1">
+                              Verify blood type and genotype from lab results. Confirm allergies with patient.
+                              This information will be used by referral hospitals in emergencies.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                       <button
                         onClick={handleIssueCredential}
-                        className="w-full px-8 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold text-lg rounded-xl hover:from-teal-700 hover:to-cyan-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                        className="w-full px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-lg rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                       >
                         <div className="flex items-center justify-center gap-3">
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                           </svg>
-                          Issue Health Card
+                          Issue Digital Health Card
                         </div>
                       </button>
+                      <p className="text-xs text-gray-500 text-center mt-3">
+                        The health card will be sent to the patient's email and can be stored in their mobile wallet.
+                      </p>
                     </div>
                   </div>
                 )}
