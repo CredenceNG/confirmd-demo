@@ -68,7 +68,17 @@ export default function VerifyTrainingCertificationPage() {
       console.log("[Training Verify] Proof request response:", data);
 
       if (!response.ok || !data.success) {
-        const errorDescription = data.message || data.error || "Failed to create proof request";
+        // Handle various error formats - error could be string, object, or undefined
+        let errorDescription = "Failed to create proof request";
+        if (data.message) {
+          errorDescription = data.message;
+        } else if (data.error && typeof data.error === "string") {
+          errorDescription = data.error;
+        } else if (data.error?.message) {
+          errorDescription = data.error.message;
+        } else if (data.details) {
+          errorDescription = typeof data.details === "string" ? data.details : JSON.stringify(data.details);
+        }
         console.error("[Training Verify] Failed to request proof:", data);
         setErrorMessage(errorDescription);
         setVerificationStatus("error");
