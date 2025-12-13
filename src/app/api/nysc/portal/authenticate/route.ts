@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
       othernames,
       idNumber,
       serviceState: attributes.service_state || "Unknown",
-      serviceStartDate: attributes.Service_start_date || attributes.service_start_date || "N/A",
+      serviceStartDate: attributes.service_start_date || "N/A",
       serviceEndDate: attributes.service_end_date || "N/A",
       // Optional attributes that might come from the comprehensive proof
       callUpNumber: attributes.call_up_number,

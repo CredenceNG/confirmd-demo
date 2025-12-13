@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         ...(process.env.NYSC_ID_CARD_CRED_DEF_ID && { credDefId: process.env.NYSC_ID_CARD_CRED_DEF_ID }),
       },
       {
-        attributeName: "Service_start_date",
+        attributeName: "service_start_date",
         schemaId: process.env.NYSC_ID_CARD_SCHEMA_ID || "",
         ...(process.env.NYSC_ID_CARD_CRED_DEF_ID && { credDefId: process.env.NYSC_ID_CARD_CRED_DEF_ID }),
       },
