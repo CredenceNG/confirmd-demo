@@ -348,7 +348,7 @@ export async function POST(request: NextRequest) {
               value: ensureValue("Lagos", "Lagos"),
             },
             {
-              name: "Service_start_date",
+              name: "service_start_date",
               value: serviceStartDate,
             },
             {
@@ -385,7 +385,16 @@ export async function POST(request: NextRequest) {
       apiUrl,
     });
 
-    console.log("[NYSC ID Card API] Payload:", JSON.stringify(payload, null, 2));
+    console.log("[NYSC ID Card API] Full Request Details:", {
+      apiUrl,
+      method: 'POST',
+      credDefId: credentialDefinitionId,
+      orgId,
+      connectionId,
+      attributeCount: payload.credentialData[0].attributes.length,
+      attributes: payload.credentialData[0].attributes.map(a => a.name),
+    });
+    console.log("[NYSC ID Card API] Full Payload:", JSON.stringify(payload, null, 2));
 
     const response = await axios.post(apiUrl, payload, {
       headers: {
@@ -445,15 +454,31 @@ export async function POST(request: NextRequest) {
     if (axios.isAxiosError(error)) {
       logger.error("NYSC Onboarding: API Response Error", {
         status: error.response?.status,
+        statusText: error.response?.statusText,
         data: error.response?.data,
+        headers: error.response?.headers,
       });
+
+      console.error("[NYSC ID Card API] DETAILED ERROR:", {
+        url: error.config?.url,
+        method: error.config?.method,
+        requestPayload: error.config?.data,
+        responseStatus: error.response?.status,
+        responseData: JSON.stringify(error.response?.data, null, 2),
+        message: error.message,
+      });
+
+      // Extract the actual error from ConfirmD Platform response
+      const platformError = error.response?.data;
+      const errorMessage = platformError?.error || platformError?.message || "Failed to issue NYSC ID Card";
+      const errorDescription = platformError?.error_description || platformError?.description || errorMessage;
 
       return NextResponse.json(
         {
           success: false,
           error: {
-            error: "api_error",
-            error_description: error.response?.data?.message || "Failed to issue NYSC ID Card",
+            error: platformError?.error || "api_error",
+            error_description: errorDescription,
             details: error.response?.data,
           },
         },

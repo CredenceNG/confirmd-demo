@@ -117,7 +117,7 @@ This document lists all credential types and their attributes used in the Confir
 | 2 | `othernames` | Other names (first & middle) | Babatunde Oluwole |
 | 3 | `id_number` | NYSC ID card number | NYSC-1704470400000 |
 | 4 | `service_state` | State of deployment | Lagos |
-| 5 | `Service_start_date` | Service start date | 2024-03-01 |
+| 5 | `service_start_date` | Service start date | 2024-03-01 |
 | 6 | `service_end_date` | Service end date | 2025-02-28 |
 | 7 | `issued_date` | ID card issue date | 2024-03-01 |
 | 8 | `expiry_date` | ID card expiry date | 2026-02-28 |
