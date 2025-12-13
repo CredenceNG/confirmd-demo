@@ -61,8 +61,12 @@ export default function NYSCPortalPage() {
         setAuthMessage("NYSC ID Card received! Verifying credentials...");
 
         const proofIdToVerify = connectionData.proofId;
-        if (proofIdToVerify) {
+        if (proofIdToVerify && sessionId) {
           verifyAndAuthenticate(proofIdToVerify);
+        } else if (!sessionId) {
+          console.error('[NYSC Portal] Cannot verify - sessionId is missing');
+          setAuthMessage("Session error. Please refresh and try again.");
+          setAuthStatus("unauthenticated");
         }
       } else if (connectionData?.status === "abandoned") {
         setAuthMessage("Authentication cancelled. Please try again.");
@@ -149,7 +153,19 @@ export default function NYSCPortalPage() {
 
   // Verify proof and authenticate user
   const verifyAndAuthenticate = async (proofIdToVerify: string) => {
-    console.log('[NYSC Portal] Verifying credentials and authenticating', { proofId: proofIdToVerify });
+    console.log('[NYSC Portal] Verifying credentials and authenticating', {
+      proofId: proofIdToVerify,
+      sessionId,
+      hasSessionId: !!sessionId
+    });
+
+    if (!sessionId) {
+      console.error('[NYSC Portal] Cannot authenticate - sessionId is empty');
+      setAuthMessage("Session error. Please refresh the page and try again.");
+      setAuthStatus("unauthenticated");
+      return;
+    }
+
     setAuthMessage("Verifying your NYSC ID Card...");
 
     try {
