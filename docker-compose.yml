@@ -34,8 +34,9 @@ services:
       - WEBHOOK_SECRET=${WEBHOOK_SECRET}
     volumes:
       # .env file not mounted - use environment variables above instead
-      - ./public:/app/public
-      - ./uploads:/app/uploads
+      # Note: Don't mount ./public as it will override the built public directory
+      # - ./public:/app/public
+      - uploads_data:/app/uploads
     depends_on:
       - db
     restart: unless-stopped
@@ -104,4 +105,6 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  uploads_data:
     driver: local
