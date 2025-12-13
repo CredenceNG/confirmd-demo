@@ -32,6 +32,13 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 
+# Set Node memory limit to prevent OOM during build
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
+# Set dummy DATABASE_URL for Prisma during build (not used, but required)
+ARG DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
+ENV DATABASE_URL=${DATABASE_URL}
+
 # Generate Prisma Client
 RUN npx prisma generate
 
@@ -49,14 +56,26 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy dependencies and build output
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/config ./config
-COPY --from=builder /app/server.js ./server.js
-COPY --from=builder /app/package*.json ./
+# Copy standalone build (includes only necessary files)
+# Standalone output includes server.js, node_modules, config, and .next/server
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# If standalone created nested directory structure, flatten it
+RUN if [ -d "_confirmd/confirmd-demo" ]; then \
+      cp -r _confirmd/confirmd-demo/* . && \
+      cp -r _confirmd/confirmd-demo/.next . && \
+      rm -rf _confirmd; \
+    fi
+
+# Ensure Prisma client is available (standalone should include it, but we copy as fallback)
+RUN if [ ! -d "node_modules/.prisma" ]; then \
+      echo "Warning: Prisma client not found in standalone, copying from builder..."; \
+      mkdir -p node_modules/.prisma node_modules/@prisma; \
+    fi
+
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 # Create uploads directory
 RUN mkdir -p uploads && chown nextjs:nodejs uploads
@@ -70,5 +89,5 @@ EXPOSE 3300
 ENV PORT=3300
 ENV HOSTNAME="0.0.0.0"
 
-# Start the application
+# Start the application with custom server
 CMD ["node", "server.js"]

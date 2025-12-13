@@ -1,6 +1,6 @@
-# Nelfund Demo - Student Registration Platform
+# Credence Confirmd Demo - Student Registration Platform
 
-A modern student registration platform with ConfirmD digital wallet integration, built with Next.js 15, TypeScript, Prisma, SQLite, and Tailwind CSS. Features real-time connection notifications via WebSockets and webhooks.
+Demo application to demostrate the various features of the Confirmd Platform with ConfirmD digital wallet integration, built with Next.js 15, TypeScript, Prisma, SQLite, and Tailwind CSS. Features real-time connection notifications via WebSockets and webhooks.
 
 ## Features
 
@@ -88,6 +88,7 @@ npx prisma migrate dev --name init
 ```
 
 This will:
+
 - Create the SQLite database file
 - Apply the schema migrations
 - Generate Prisma Client
@@ -125,6 +126,7 @@ Navigate to [http://localhost:3000](http://localhost:3000) to see the dashboard.
 The application includes two main models:
 
 ### User Model
+
 - `id`: Auto-incrementing integer
 - `email`: Unique email address
 - `name`: Optional user name
@@ -134,6 +136,7 @@ The application includes two main models:
 - `posts`: Relation to Post model
 
 ### Post Model
+
 - `id`: Auto-incrementing integer
 - `title`: Post title
 - `content`: Optional post content
@@ -150,6 +153,7 @@ The application includes two main models:
 To use a different database (PostgreSQL, MySQL, etc.):
 
 1. Update `prisma/schema.prisma`:
+
 ```prisma
 datasource db {
   provider = "postgresql"  // or "mysql", "mongodb", etc.
@@ -158,11 +162,13 @@ datasource db {
 ```
 
 2. Update `.env` with your database connection string:
+
 ```
 DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
 ```
 
 3. Run migrations:
+
 ```bash
 npx prisma migrate dev --name init
 ```
@@ -209,16 +215,19 @@ DATABASE_URL="file:./dev.db"
 ## Production Deployment
 
 1. Build the application:
+
 ```bash
 npm run build
 ```
 
 2. Set up your production database:
+
 ```bash
 npx prisma migrate deploy
 ```
 
 3. Start the production server:
+
 ```bash
 npm start
 ```
@@ -267,6 +276,7 @@ nvm use 18
 Complete documentation for integrating verifiable credential proof requests with the ConfirmD Platform.
 
 ### 🚀 Quick Start
+
 - **[QUICKSTART.md](docs/QUICKSTART.md)** - Get your integration running in 30 minutes
   - Step-by-step setup guide
   - Essential code snippets
@@ -276,6 +286,7 @@ Complete documentation for integrating verifiable credential proof requests with
 ### 📖 Comprehensive Guides
 
 #### Main Integration Guide
+
 - **[CONFIRMD_INTEGRATION_GUIDE.md](docs/CONFIRMD_INTEGRATION_GUIDE.md)** - Complete integration reference
   - Architecture overview and component diagrams
   - Core concepts (connections, proofs, attributes)
@@ -285,6 +296,7 @@ Complete documentation for integrating verifiable credential proof requests with
   - Production deployment checklist
 
 #### API Reference
+
 - **[API_REFERENCE.md](docs/API_REFERENCE.md)** - Quick API lookup
   - All ConfirmD Platform endpoints
   - Request/response examples
@@ -296,37 +308,42 @@ Complete documentation for integrating verifiable credential proof requests with
 ### 🔑 Key Integration Features
 
 #### 1. Connection Establishment
+
 ```
 Your App → Create Invitation → Generate QR Code →
 User Scans → Webhook Received → Connection Active
 ```
 
 #### 2. Proof Request & Verification
+
 ```
 Request Proof → User Presents Credentials →
 Verify Proof → Extract Attributes → Save to Database
 ```
 
 #### 3. Attribute Extraction
+
 **Critical Implementation Detail**: The ConfirmD Platform returns attributes where each array element contains ONE attribute:
 
 ```typescript
 // Response structure:
 [
-  { "admission_number": "123", "schemaId": "...", "credDefId": "..." },
-  { "programme": "CS", "schemaId": "...", "credDefId": "..." }
-]
+  { admission_number: "123", schemaId: "...", credDefId: "..." },
+  { programme: "CS", schemaId: "...", credDefId: "..." },
+];
 
 // Must iterate and merge:
 const attributes = {};
-data.forEach(item => {
+data.forEach((item) => {
   const { schemaId, credDefId, ...attr } = item;
   Object.assign(attributes, attr);
 });
 ```
 
 #### 4. Real-Time Updates (Optional)
+
 The platform includes WebSocket support for real-time connection status updates:
+
 - **[REAL_TIME_NOTIFICATIONS_GUIDE.md](docs/REAL_TIME_NOTIFICATIONS_GUIDE.md)** - WebSocket implementation
 - **[SESSION_MATCHING_FIX.md](docs/SESSION_MATCHING_FIX.md)** - Dual-key tracking system
 - **[WEBSOCKET_IMPLEMENTATION.md](docs/WEBSOCKET_IMPLEMENTATION.md)** - Technical details
@@ -380,6 +397,7 @@ The platform includes WebSocket support for real-time connection status updates:
 ### 🎯 Use Cases
 
 This integration enables:
+
 - **Student verification** for loan applications (NELFUND use case)
 - **Employee credential** verification for onboarding
 - **Certificate verification** for professional services
@@ -389,15 +407,16 @@ This integration enables:
 
 ### 🐛 Common Issues & Solutions
 
-| Issue | Solution |
-|-------|----------|
-| Only 1 attribute extracted | Use `forEach` to iterate ALL array items |
-| Webhooks not received | Expose public HTTPS endpoint (ngrok for dev) |
-| Connection timeout | Increase timeout, check wallet connectivity |
-| 401 Unauthorized | Verify OAuth2 credentials, check token cache |
-| Missing attributes | Ensure attribute names match config file |
+| Issue                      | Solution                                     |
+| -------------------------- | -------------------------------------------- |
+| Only 1 attribute extracted | Use `forEach` to iterate ALL array items     |
+| Webhooks not received      | Expose public HTTPS endpoint (ngrok for dev) |
+| Connection timeout         | Increase timeout, check wallet connectivity  |
+| 401 Unauthorized           | Verify OAuth2 credentials, check token cache |
+| Missing attributes         | Ensure attribute names match config file     |
 
 ### 📚 Additional Resources
+
 - **[WEBHOOK_IMPLEMENTATION.md](docs/WEBHOOK_IMPLEMENTATION.md)** - Webhook setup details
 - **[WEBHOOK_SETUP_GUIDE.md](docs/WEBHOOK_SETUP_GUIDE.md)** - Webhook registration
 - [ConfirmD Platform Documentation](https://docs.confirmd.com)
@@ -418,4 +437,4 @@ ISC
 
 ## Support
 
-For issues and questions, please open an issue on the [GitHub repository](https://github.com/CredenceNG/nelfund-demo/issues).
+For issues and questions, please open an issue on the [GitHub repository](https://github.com/CredenceNG/nelfund-demo/issu

@@ -13,10 +13,15 @@ const next = require('next');
 const { WebSocketServer } = require('ws');
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = 'localhost';
+const hostname = process.env.HOSTNAME || 'localhost';
 const port = parseInt(process.env.PORT || '3300', 10);
 
-const app = next({ dev, hostname, port });
+// In production with standalone build, Next.js handles routing differently
+const app = next({
+  dev,
+  hostname: dev ? hostname : '0.0.0.0',
+  port
+});
 const handle = app.getRequestHandler();
 
 // WebSocket connection manager (in-memory)
