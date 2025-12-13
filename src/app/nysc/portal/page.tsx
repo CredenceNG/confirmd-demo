@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useConnectionWebSocket } from "@/hooks/useConnectionWebSocket";
@@ -35,6 +35,14 @@ export default function NYSCPortalPage() {
   const [corpMember, setCorpMember] = useState<CorpMember | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+  // Use ref to always have access to the latest sessionId value
+  const sessionIdRef = useRef<string>("");
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
   const handleClearStorage = () => {
     clearConnection();
     setShowClearConfirm(false);
@@ -61,10 +69,22 @@ export default function NYSCPortalPage() {
         setAuthMessage("NYSC ID Card received! Verifying credentials...");
 
         const proofIdToVerify = connectionData.proofId;
-        if (proofIdToVerify && sessionId) {
+        const currentSessionId = sessionIdRef.current;
+
+        console.log('[NYSC Portal] Presentation received, checking sessionId', {
+          proofIdToVerify,
+          sessionIdFromState: sessionId,
+          sessionIdFromRef: currentSessionId,
+          hasSessionId: !!currentSessionId
+        });
+
+        if (proofIdToVerify && currentSessionId) {
           verifyAndAuthenticate(proofIdToVerify);
-        } else if (!sessionId) {
-          console.error('[NYSC Portal] Cannot verify - sessionId is missing');
+        } else if (!currentSessionId) {
+          console.error('[NYSC Portal] Cannot verify - sessionId is missing', {
+            sessionIdFromState: sessionId,
+            sessionIdFromRef: currentSessionId
+          });
           setAuthMessage("Session error. Please refresh and try again.");
           setAuthStatus("unauthenticated");
         }
@@ -153,14 +173,20 @@ export default function NYSCPortalPage() {
 
   // Verify proof and authenticate user
   const verifyAndAuthenticate = async (proofIdToVerify: string) => {
+    const currentSessionId = sessionIdRef.current;
+
     console.log('[NYSC Portal] Verifying credentials and authenticating', {
       proofId: proofIdToVerify,
-      sessionId,
-      hasSessionId: !!sessionId
+      sessionIdFromState: sessionId,
+      sessionIdFromRef: currentSessionId,
+      hasSessionId: !!currentSessionId
     });
 
-    if (!sessionId) {
-      console.error('[NYSC Portal] Cannot authenticate - sessionId is empty');
+    if (!currentSessionId) {
+      console.error('[NYSC Portal] Cannot authenticate - sessionId is empty', {
+        sessionIdFromState: sessionId,
+        sessionIdFromRef: currentSessionId
+      });
       setAuthMessage("Session error. Please refresh the page and try again.");
       setAuthStatus("unauthenticated");
       return;
@@ -172,7 +198,7 @@ export default function NYSCPortalPage() {
       const response = await fetch('/api/nysc/portal/authenticate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ proofId: proofIdToVerify, sessionId }),
+        body: JSON.stringify({ proofId: proofIdToVerify, sessionId: currentSessionId }),
       });
 
       const data = await response.json();
